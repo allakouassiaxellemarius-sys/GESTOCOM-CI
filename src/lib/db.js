@@ -57,6 +57,7 @@ export async function loadSqliteCache(sqlite) {
     'users', 'products', 'products_v2', 'ventes', 'depenses', 'fournisseurs',
     'commandes', 'retours', 'receipts', 'logs',
     'stock_mouvements', 'stock_entrepots', 'stock_lots', 'stock_inventaires',
+    'kyc_kyb_documents',
   ]
   for (const t of tables) {
     try {

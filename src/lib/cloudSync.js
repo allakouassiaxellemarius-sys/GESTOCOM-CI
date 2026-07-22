@@ -6,6 +6,7 @@ import {
   getUsersForAdmin,
 } from './db'
 import { getProductsV2, getMouvements, getEntrepots, getLots } from './stockDb'
+import { getDocuments } from './documentsDb'
 
 const EXPORT_VERSION = '1.5.1'
 const EXPORT_MAGIC = 'GESTOCOM_SYNC'
@@ -28,6 +29,7 @@ export function exportAccountData(adminId) {
     stockMouvements: getMouvements(),
     stockEntrepots: getEntrepots(),
     stockLots: getLots(),
+    kycKybDocuments: getDocuments(),
     settings: {
       company: getCompanySettings(),
       stock: getStockSettings(),
@@ -112,6 +114,7 @@ export function importAccountData(data) {
   setTable('stock_mouvements', data.stockMouvements || [])
   setTable('stock_entrepots', data.stockEntrepots || [])
   setTable('stock_lots', data.stockLots || [])
+  setTable('kyc_kyb_documents', data.kycKybDocuments || [])
 
   // Import settings
   if (data.settings) {

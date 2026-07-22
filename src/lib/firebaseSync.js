@@ -8,6 +8,7 @@ import {
   getUsersForAdmin,
 } from './db'
 import { getProductsV2, getMouvements, getEntrepots, getLots } from './stockDb'
+import { getDocuments } from './documentsDb'
 
 export function collectAllData(adminId) {
   return {
@@ -23,6 +24,7 @@ export function collectAllData(adminId) {
     stockMouvements: getMouvements(),
     stockEntrepots: getEntrepots(),
     stockLots: getLots(),
+    kycKybDocuments: getDocuments(),
     settings: {
       company: getCompanySettings(),
       stock: getStockSettings(),
@@ -94,6 +96,7 @@ export function restoreDataFromCloud(cloudData) {
   setTable('stock_mouvements', d.stockMouvements || [])
   setTable('stock_entrepots', d.stockEntrepots || [])
   setTable('stock_lots', d.stockLots || [])
+  setTable('kyc_kyb_documents', d.kycKybDocuments || [])
 
   if (d.settings) {
     if (d.settings.company) setSetting('company', d.settings.company)
