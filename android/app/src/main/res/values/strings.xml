@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">GESTOCOM CI</string>
+    <string name="title_activity_main">GESTOCOM CI</string>
+    <string name="package_name">com.gestocom.ci</string>
+    <string name="custom_url_scheme">com.gestocom.ci</string>
+</resources>

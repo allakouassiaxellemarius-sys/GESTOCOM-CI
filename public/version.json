@@ -1,0 +1,5 @@
+{
+  "version": "1.5.1",
+  "changelog": "Catégories de stock : champs spécifiques par catégorie (Alimentaire, Boisson, Hygiène, Entretien, Électronique, Vêtement). Retours consignés pour boissons. Alertes renforcées : ingrédient clé, produit essentiel, best-seller, consignes en attente.",
+  "zipUrl": "https://gesto-build.vercel.app/app.asar"
+}

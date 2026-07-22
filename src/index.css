@@ -1,0 +1,381 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Montserrat:wght@500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* ══════════════════════════════════════════════
+   FLUID TYPOGRAPHY SCALE
+   Automatically adapts to screen size:
+   - Small phone (320px): 14px base
+   - Standard phone (375px): 15px
+   - Large phone/tablet (480px+): 16px
+   - Landscape: 13px base (compact)
+══════════════════════════════════════════════ */
+
+@layer base {
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    -webkit-tap-highlight-color: transparent;
+    overscroll-behavior: none;
+    overflow-x: hidden;
+    font-size: clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
+  }
+
+  body {
+    @apply font-sans text-dark-900 bg-white transition-colors duration-300;
+    overflow-x: hidden;
+    -webkit-overflow-scrolling: touch;
+    padding-top: env(safe-area-inset-top);
+    padding-bottom: env(safe-area-inset-bottom);
+    font-size: clamp(0.875rem, 0.8125rem + 0.1875vw, 1rem);
+    max-width: 100vw;
+  }
+
+  .dark body,
+  .dark {
+    @apply text-gray-100;
+  }
+
+  ::selection {
+    @apply bg-brand-500 text-white;
+  }
+
+  /* Fluid heading sizes — Montserrat display font */
+  h1, h2, h3, h4, .heading {
+    font-family: 'Montserrat', 'Inter', system-ui, sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+  }
+  h1, .text-xl { font-size: clamp(1.25rem, 1.1rem + 0.5vw, 1.75rem); }
+  h2, .text-lg { font-size: clamp(1.125rem, 1rem + 0.375vw, 1.5rem); }
+  h3          { font-size: clamp(1rem, 0.925rem + 0.25vw, 1.25rem); }
+
+  /* Prevent zoom on inputs on iOS — min 16px */
+  input[type="text"],
+  input[type="number"],
+  input[type="email"],
+  input[type="password"],
+  input[type="tel"],
+  input[type="search"],
+  input[type="url"],
+  textarea,
+  select {
+    font-size: max(1rem, 16px);
+  }
+}
+
+/* ══════════════════════════════════════════════
+   LANDSCAPE MODE ADAPTATIONS
+   When phone is rotated (height < width on mobile):
+   - Compact bottom nav (icons only, shorter)
+   - Thinner header
+   - Reduced padding
+   - Side-by-side content where possible
+══════════════════════════════════════════════ */
+
+@media screen and (orientation: landscape) and (max-height: 500px) {
+  html { font-size: clamp(0.75rem, 0.7rem + 0.2vw, 0.875rem); }
+
+  .layout-header { height: 2.25rem !important; }
+  .layout-header h1 { font-size: 0.8125rem !important; }
+
+  /* Compact bottom nav: hide text labels, keep icons */
+  .layout-nav { height: 2.25rem !important; padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
+  .layout-nav a span,
+  .layout-nav button span { display: none !important; }
+  .layout-nav a,
+  .layout-nav button { height: 2.25rem !important; }
+  .layout-nav a svg,
+  .layout-nav button svg { width: 1.125rem !important; height: 1.125rem !important; }
+
+  .layout-main { padding: 0.5rem !important; padding-bottom: 3rem !important; }
+
+  .bottom-sheet { max-height: 70vh !important; }
+
+  .fab-safe { bottom: calc(2.25rem + env(safe-area-inset-bottom, 0px) + 0.5rem) !important; }
+
+  /* Landscape grids: 2 columns on wider screens */
+  .landscape-grid-2 { grid-template-columns: repeat(2, 1fr) !important; }
+  .landscape-grid-3 { grid-template-columns: repeat(3, 1fr) !important; }
+
+  /* Compact tables in landscape */
+  .landscape-table { font-size: 0.6875rem !important; }
+  .landscape-table th,
+  .landscape-table td { padding: 0.25rem 0.375rem !important; white-space: nowrap; }
+
+  /* ParametresPage: hide sidebar, use horizontal tabs */
+  .params-layout { flex-direction: column !important; gap: 0.75rem !important; }
+  .params-sidebar { width: 100% !important; flex-shrink: 0 !important; }
+  .params-sidebar nav { display: flex; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; gap: 0; }
+  .params-sidebar nav::-webkit-scrollbar { display: none; }
+  .params-sidebar nav button { white-space: nowrap; flex-shrink: 0; padding: 0.375rem 0.75rem !important; font-size: 0.6875rem !important; }
+}
+
+@media screen and (orientation: landscape) and (max-height: 400px) {
+  html { font-size: 0.6875rem; }
+  .layout-nav { height: 2rem !important; }
+  .layout-nav a, .layout-nav button { height: 2rem !important; }
+  .layout-header { height: 2rem !important; }
+  .layout-main { padding: 0.375rem !important; padding-bottom: 2.5rem !important; }
+
+  .landscape-table th,
+  .landscape-table td { padding: 0.125rem 0.25rem !important; font-size: 0.625rem !important; }
+}
+
+/* Mobile: collapse params sidebar */
+@media screen and (max-width: 639px) {
+  .params-layout { flex-direction: column !important; gap: 0.75rem !important; }
+  .params-sidebar { width: 100% !important; flex-shrink: 0 !important; }
+  .params-sidebar nav { display: flex; overflow-x: auto; -ms-overflow-style: none; scrollbar-width: none; gap: 0; }
+  .params-sidebar nav::-webkit-scrollbar { display: none; }
+  .params-sidebar nav button { white-space: nowrap; flex-shrink: 0; padding: 0.375rem 0.75rem !important; font-size: 0.75rem !important; }
+}
+
+/* ══════════════════════════════════════════════
+   COMPONENTS
+══════════════════════════════════════════════ */
+
+@layer components {
+  .btn-primary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-brand-500 text-white font-semibold rounded-xl 
+           hover:bg-brand-600 active:bg-brand-700 
+           transition-all duration-300 shadow-lg shadow-brand-500/25 
+           hover:shadow-xl hover:shadow-brand-500/30 
+           hover:-translate-y-0.5 active:translate-y-0
+           active:scale-[0.97];
+    min-height: 48px;
+    min-width: 48px;
+    font-size: clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
+  }
+
+  .btn-secondary {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-white text-dark-900 font-semibold rounded-xl 
+           border-2 border-dark-200 hover:border-brand-500 hover:text-brand-500
+           transition-all duration-300 hover:-translate-y-0.5 active:translate-y-0
+           active:scale-[0.97];
+    min-height: 48px;
+    min-width: 48px;
+    font-size: clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
+  }
+
+  .dark .btn-secondary {
+    @apply bg-dark-800 text-gray-100 border-dark-600 hover:border-brand-400 hover:text-brand-400;
+  }
+
+  .btn-gold {
+    @apply inline-flex items-center justify-center gap-2 px-6 py-3 
+           bg-emerald-500 text-white font-semibold rounded-xl 
+           hover:bg-emerald-600 active:bg-emerald-700 
+           transition-all duration-300 shadow-lg shadow-emerald-500/25 
+           hover:shadow-xl hover:shadow-emerald-500/30 
+           hover:-translate-y-0.5 active:translate-y-0
+           active:scale-[0.97];
+    min-height: 48px;
+    min-width: 48px;
+    font-size: clamp(0.875rem, 0.8rem + 0.25vw, 1rem);
+  }
+
+  .section-padding {
+    @apply px-4 sm:px-6 lg:px-8 py-16 lg:py-28;
+  }
+
+  .gradient-text {
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-brand-500 to-brand-700;
+  }
+
+  .card {
+    @apply bg-white rounded-2xl shadow-sm border border-dark-100 
+           hover:shadow-xl hover:border-brand-200 
+           transition-all duration-300 hover:-translate-y-1;
+    /* Fluid card padding */
+    padding: clamp(0.75rem, 0.5rem + 0.75vw, 1.5rem);
+  }
+
+  .dark .card {
+    @apply bg-dark-800 border-dark-700 hover:border-brand-500/50;
+  }
+
+  @media (hover: none) {
+    .card {
+      @apply hover:shadow-sm hover:border-dark-100 hover:translate-y-0;
+    }
+  }
+
+  /* ── Bottom sheet ── */
+  .bottom-sheet {
+    @apply fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-dark-800 
+           rounded-t-3xl shadow-2xl;
+    max-height: 85vh;
+    padding-bottom: env(safe-area-inset-bottom, 0px);
+    animation: sheetSlideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+  }
+
+  .bottom-sheet-overlay {
+    @apply fixed inset-0 z-40 bg-black/40;
+    animation: fadeIn 0.2s ease-out;
+  }
+
+  /* ── Page transitions ── */
+  .page-enter {
+    animation: pageSlideIn 0.25s cubic-bezier(0.32, 0.72, 0, 1) both;
+  }
+
+  /* ── Toast notification ── */
+  .toast {
+    @apply fixed top-4 left-4 right-4 z-[200] bg-white dark:bg-dark-800 
+           rounded-2xl shadow-2xl border border-gray-100 dark:border-dark-700
+           p-4 flex items-center gap-3;
+    animation: toastIn 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    max-width: 24rem;
+    margin-left: auto;
+    margin-right: auto;
+  }
+
+  /* ── Skeleton loading ── */
+  .skeleton {
+    @apply bg-gray-200 dark:bg-dark-700 rounded-lg animate-pulse;
+  }
+
+  /* ── Scrollable tabs ── */
+  .tabs-scroll {
+    @apply flex gap-1 overflow-x-auto scrollbar-hide;
+    scroll-snap-type: x mandatory;
+    -webkit-overflow-scrolling: touch;
+    padding-bottom: 2px;
+  }
+  .tabs-scroll > * {
+    scroll-snap-align: start;
+    @apply flex-shrink-0;
+  }
+
+  /* ── FAB safe position (above bottom nav) ── */
+  .fab-safe {
+    @apply fixed z-30;
+    bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px) + 0.75rem);
+  }
+
+  /* ── Fluid stat value ── */
+  .stat-value {
+    font-size: clamp(1.25rem, 1rem + 1vw, 2rem);
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  /* ── Fluid stat label ── */
+  .stat-label {
+    font-size: clamp(0.625rem, 0.5625rem + 0.15vw, 0.75rem);
+    font-weight: 500;
+  }
+
+  /* ── Glassmorphism ── */
+  .glass {
+    @apply bg-white/70 dark:bg-dark-800/70 backdrop-blur-xl border border-white/20;
+  }
+
+  /* ── Gradient border ── */
+  .gradient-border {
+    position: relative;
+  }
+  .gradient-border::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    padding: 2px;
+    background: linear-gradient(135deg, #2563eb, #10b981);
+    -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+    -webkit-mask-composite: xor;
+    mask-composite: exclude;
+  }
+}
+
+@layer utilities {
+  .animate-delay-100 { animation-delay: 100ms; }
+  .animate-delay-200 { animation-delay: 200ms; }
+  .animate-delay-300 { animation-delay: 300ms; }
+  .animate-delay-400 { animation-delay: 400ms; }
+  .animate-delay-500 { animation-delay: 500ms; }
+
+  .safe-area-top { padding-top: env(safe-area-inset-top); }
+  .safe-area-bottom { padding-bottom: env(safe-area-inset-bottom); }
+  .safe-area-left { padding-left: env(safe-area-inset-left); }
+  .safe-area-right { padding-right: env(safe-area-inset-right); }
+
+  .touch-target {
+    min-height: 48px;
+    min-width: 48px;
+  }
+
+  .touch-feedback:active {
+    transform: scale(0.97);
+    opacity: 0.85;
+    transition: transform 0.1s, opacity 0.1s;
+  }
+
+  .scrollbar-hide {
+    -ms-overflow-style: none;
+    scrollbar-width: none;
+  }
+  .scrollbar-hide::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+/* ═══ ANIMATIONS ═══ */
+@keyframes sheetSlideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; }
+  to { opacity: 1; }
+}
+
+@keyframes pageSlideIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes toastIn {
+  from { opacity: 0; transform: translateY(-100%) scale(0.95); }
+  to { opacity: 1; transform: translateY(0) scale(1); }
+}
+
+@keyframes slideInRight {
+  from { transform: translateX(100%); }
+  to { transform: translateX(0); }
+}
+
+@keyframes shimmer {
+  from { background-position: -200% 0; }
+  to { background-position: 200% 0; }
+}
+
+/* ═══ GLOBAL OVERFLOW PREVENTION ═══ */
+/* Prevent ANY element from causing horizontal scroll */
+#root,
+.min-h-screen,
+.layout-main {
+  overflow-x: hidden;
+  max-width: 100%;
+}
+
+/* All tables should scroll horizontally, never overflow */
+table {
+  table-layout: auto;
+}
+
+/* Landscape mobile: force all pages to stay in viewport */
+@media screen and (max-width: 768px) {
+  .page-enter,
+  .page-enter > div {
+    overflow-x: hidden;
+    max-width: 100vw;
+  }
+}

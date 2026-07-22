@@ -1,0 +1,17 @@
+node_modules
+android
+electron
+release
+src
+build
+*.md
+*.log
+.git
+.vscode
+*.mjs
+capacitor.config.ts
+tailwind.config.js
+postcss.config.js
+vite.config.js
+dist/app.asar
+dist/GESTOCOM-CI-Update.zip

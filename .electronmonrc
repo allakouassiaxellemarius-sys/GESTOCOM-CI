@@ -1,0 +1,5 @@
+{
+  "main": "electron/main.js",
+  "watch": ["electron/**/*"],
+  "ignore": ["node_modules", "dist", "build", ".git", "*.log"]
+}

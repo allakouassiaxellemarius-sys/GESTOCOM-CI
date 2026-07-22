@@ -1,0 +1,77 @@
+{
+  "name": "GESTOCOM CI — Gestion Commerciale Professionnelle",
+  "short_name": "GESTOCOM CI",
+  "description": "Logiciel de gestion commerciale conçu pour les PME ivoiriennes. Données 100% locales, fonctionne hors ligne.",
+  "start_url": "/#/app",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["window-controls-overlay", "standalone"],
+  "background_color": "#FF8C00",
+  "theme_color": "#FF8C00",
+  "orientation": "any",
+  "categories": ["business", "finance"],
+  "lang": "fr",
+  "dir": "ltr",
+  "iarc_rating_id": "",
+  "id": "/",
+  "prefer_related_applications": false,
+  "icons": [
+    {
+      "src": "/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Tableau de bord",
+      "short_name": "Accueil",
+      "url": "/#/app",
+      "description": "Accéder au tableau de bord",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Ventes rapides",
+      "short_name": "Ventes",
+      "url": "/#/app/ventes",
+      "description": "Encaisser une vente",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Gestion stock",
+      "short_name": "Stock",
+      "url": "/#/app/stock",
+      "description": "Gérer le stock",
+      "icons": [{ "src": "/icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "wide",
+      "label": "Tableau de bord GESTOCOM CI"
+    },
+    {
+      "src": "/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "form_factor": "narrow",
+      "label": "Application mobile GESTOCOM CI"
+    }
+  ]
+}
