@@ -21,6 +21,7 @@ import FournisseursPage from './pages/FournisseursPage'
 import IAPage from './pages/IAPage'
 import ParametresPage from './pages/ParametresPage'
 import DocumentsPage from './pages/DocumentsPage'
+import LogicielsPage from './pages/LogicielsPage'
 import DownloadPage from './pages/DownloadPage'
 import RetoursPage from './pages/RetoursPage'
 import CommandesPage from './pages/CommandesPage'
@@ -100,6 +101,7 @@ function AppRoutes() {
       {/* Transversal */}
       <Route path="/app/ia" element={<ProtectedRoute><IAPage /></ProtectedRoute>} />
       <Route path="/app/documents" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
+      <Route path="/app/logiciels" element={<ProtectedRoute><LogicielsPage /></ProtectedRoute>} />
       <Route path="/app/parametres" element={<ProtectedRoute><ParametresPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>

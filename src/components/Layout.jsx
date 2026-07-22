@@ -12,7 +12,7 @@ import {
   Menu, X, Zap, BarChart3, RefreshCw, Download, Loader,
   History, FileText, ChevronRight, RotateCcw, ClipboardList, MoreHorizontal,
   Landmark, Factory, Heart, GraduationCap, HandHeart, ChevronDown, Users,
-  Layers, Filter, ShieldCheck,
+  Layers, Filter, ShieldCheck, Monitor,
 } from 'lucide-react'
 import { getProductsEnAlerte } from '../lib/db'
 
@@ -187,6 +187,7 @@ export default function Layout({ children }) {
     if (location.pathname === '/app') return 'Tableau de bord'
     if (location.pathname === '/app/ia') return 'Analyses & Prévisions'
     if (location.pathname === '/app/documents') return 'Documents KYC/KYB'
+    if (location.pathname === '/app/logiciels') return 'Logiciels'
     if (location.pathname === '/app/parametres') return 'Paramètres'
     if (location.pathname === '/app/modules') return 'Modules'
     return 'GESTOCOM'
@@ -316,10 +317,17 @@ export default function Layout({ children }) {
             <BarChart3 className="w-4 h-4" /> Analyses & Prévisions
           </Link>
           {user?.role === 'admin' && (
-            <Link to="/app/parametres" className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
-              location.pathname === '/app/parametres' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+            <Link to="/app/documents" className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+              location.pathname === '/app/documents' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
             }`}>
-              <Settings className="w-4 h-4" /> Paramètres
+              <ShieldCheck className="w-4 h-4" /> Documents KYC/KYB
+            </Link>
+          )}
+          {user?.role === 'admin' && (
+            <Link to="/app/logiciels" className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+              location.pathname === '/app/logiciels' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+            }`}>
+              <Monitor className="w-4 h-4" /> Logiciels
             </Link>
           )}
         </nav>
@@ -500,6 +508,11 @@ export default function Layout({ children }) {
               {user?.role === 'admin' && (
                 <Link to="/app/documents" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
                   <ShieldCheck className="w-5 h-5 text-brand-500" /> Documents KYC/KYB
+                </Link>
+              )}
+              {user?.role === 'admin' && (
+                <Link to="/app/logiciels" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                  <Monitor className="w-5 h-5 text-brand-500" /> Logiciels
                 </Link>
               )}
               {user?.role === 'admin' && (

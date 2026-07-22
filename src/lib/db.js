@@ -58,6 +58,8 @@ export async function loadSqliteCache(sqlite) {
     'commandes', 'retours', 'receipts', 'logs',
     'stock_mouvements', 'stock_entrepots', 'stock_lots', 'stock_inventaires',
     'kyc_kyb_documents',
+    'logiciels', 'logiciels_versions', 'logiciels_licences',
+    'logiciels_deploiements', 'logiciels_categories',
   ]
   for (const t of tables) {
     try {
