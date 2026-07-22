@@ -1,0 +1,33 @@
+GESTOCOM CI est une application de gestion commerciale professionnelle conçue pour les commerçants de Côte d'Ivoire.
+
+Fonctionnalités principales :
+
+• Gestion des ventes et encaissements
+• Gestion du stock multi-produits avec alertes de rupture
+• Suivi des dépenses et frais
+• Gestion des fournisseurs et approvisionnements
+• Rapports de ventes et tableaux de bord
+• Gestion des retours et avoirs
+• Gestion des commandes fournisseurs
+• Consultation IA pour analyse de données
+
+Secteurs d'activité supportés :
+• Commerce général
+• Alimentation et boissons
+• Hygiène et entretien
+• Électronique
+• Vêtements et mode
+• Santé
+• Éducation
+• Services
+
+Caractéristiques :
+• Fonctionne hors ligne (SQLite local)
+• Interface mobile et desktop responsive
+• Mode sombre
+• Export PDF des rapports
+• Gestion multi-utilisateurs avec rôles
+• Authentification par email avec vérification OTP
+• Code PIN de sécurité
+
+Conçue pour les commerçants ivoiriens, GESTOCOM CI s'adapte à votre activité et vous aide à gérer votre commerce efficacement.

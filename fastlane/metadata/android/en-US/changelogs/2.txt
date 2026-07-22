@@ -1,0 +1,13 @@
+Version 1.5.1
+
+Nouveautés :
+• Connexion par email ou nom d'utilisateur
+• Vérification OTP par email à l'inscription
+• Champs spécifiques par catégorie de produit
+• Système de retours consignés
+• Alertes stock améliorées (6 nouveaux types)
+• Audit de sécurité et nettoyage du code
+
+Corrections :
+• Bug de cache SQL lors du changement d'administrateur
+• Données d'inscription correctement scopeées par utilisateur

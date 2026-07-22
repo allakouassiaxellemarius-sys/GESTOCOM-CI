@@ -1,0 +1,33 @@
+Categories:
+  - Business
+  - Finance
+
+License: GPL-3.0-only
+
+Author: Alla Kouassi
+Email: contact@gestocom.ci
+Web: https://gestocom.ci
+
+SourceCode: https://github.com/alla-kouassi/gestocom-ci
+IssueTracker: https://github.com/alla-kouassi/gestocom-ci/issues
+
+Builds:
+  - versionName: 1.5.1
+    versionCode: 2
+    commit: v1.5.1
+    subdir: android
+    gradle:
+      - fdroid
+    rm:
+      - android/app/google-services.json
+    prebuild:
+      - sed -i 's/apply plugin: .com.google.gms.google-services.//' android/app/build.gradle
+
+AutoUpdateMode: Version
+UpdateCheckMode: Tags
+CurrentVersion: 1.5.1
+CurrentVersionCode: 2
+
+Name: GESTOCOM CI
+Summary: Gestion Commerciale Professionnelle
+Description: GESTOCOM CI est une application de gestion commerciale professionnelle pour les commerçants de Côte d'Ivoire. Gestion des ventes, stock, dépenses, fournisseurs, rapports et plus. Fonctionne hors ligne avec SQLite local.
