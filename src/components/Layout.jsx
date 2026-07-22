@@ -110,9 +110,9 @@ const SECTOR_NAV = {
 
 const MOBILE_TABS = [
   { to: '/app', icon: 'LayoutDashboard', label: 'Accueil' },
-  { to: '/app/stock', icon: 'Package', label: 'Stock' },
   { to: '/app/ventes', icon: 'ShoppingCart', label: 'Ventes' },
-  { to: '__sectors', icon: 'Layers', label: 'Secteurs' },
+  { to: '/app/stock', icon: 'Package', label: 'Stock' },
+  { to: '/app/depenses', icon: 'Receipt', label: 'Dépenses' },
   { to: '__more', icon: 'MoreHorizontal', label: 'Plus' },
 ]
 
@@ -127,13 +127,12 @@ export default function Layout({ children }) {
   const [refreshing, setRefreshing] = useState(false)
   const [updateProgress, setUpdateProgress] = useState(null)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
-  const [showSectors, setShowSectors] = useState(false)
   const [showMoreSheet, setShowMoreSheet] = useState(false)
   const [showSectorDropdown, setShowSectorDropdown] = useState(false)
   const sheetRef = useRef(null)
   const touchStartY = useRef(0)
 
-  useEffect(() => { setShowMoreMenu(false); setShowSectors(false); setShowMoreSheet(false) }, [location.pathname])
+  useEffect(() => { setShowMoreMenu(false); setShowMoreSheet(false) }, [location.pathname])
 
   useEffect(() => {
     enabledSectors.forEach(s => {
@@ -195,9 +194,10 @@ export default function Layout({ children }) {
 
   const getActiveTab = () => {
     if (location.pathname === '/app') return '/app'
-    if (location.pathname.startsWith('/app/stock') || location.pathname.startsWith('/app/fournisseurs') || location.pathname.startsWith('/app/retours') || location.pathname.startsWith('/app/profit') || location.pathname.startsWith('/app/depenses')) return '/app/stock'
     if (location.pathname.startsWith('/app/ventes') || location.pathname.startsWith('/app/finance') || location.pathname.startsWith('/app/industrie') || location.pathname.startsWith('/app/transport') || location.pathname.startsWith('/app/sante') || location.pathname.startsWith('/app/education') || location.pathname.startsWith('/app/ong')) return '/app/ventes'
-    return '__sectors'
+    if (location.pathname.startsWith('/app/stock') || location.pathname.startsWith('/app/fournisseurs') || location.pathname.startsWith('/app/retours') || location.pathname.startsWith('/app/profit')) return '/app/stock'
+    if (location.pathname.startsWith('/app/depenses')) return '/app/depenses'
+    return '__more'
   }
 
   if (!sectorChosen && enabledSectors.length > 1) {
@@ -266,6 +266,8 @@ export default function Layout({ children }) {
           }`}>
             <LayoutDashboard className="w-4 h-4" /> Tableau de bord
           </Link>
+
+          <div className="px-4 pt-3 pb-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Opérations</div>
           {visibleSectors.map(sectorId => {
             const nav = SECTOR_NAV[sectorId]
             if (!nav) return null
@@ -310,7 +312,9 @@ export default function Layout({ children }) {
               </Link>
             )
           })}
-          <div className="mx-4 my-2 border-t border-white/10" />
+
+          <div className="mx-4 mt-3 mb-1 border-t border-white/10" />
+          <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Outils</div>
           <Link to="/app/ia" className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
             location.pathname === '/app/ia' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
           }`}>
@@ -329,6 +333,18 @@ export default function Layout({ children }) {
             }`}>
               <Monitor className="w-4 h-4" /> Logiciels
             </Link>
+          )}
+
+          {user?.role === 'admin' && (
+            <>
+              <div className="mx-4 mt-3 mb-1 border-t border-white/10" />
+              <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Administration</div>
+              <Link to="/app/parametres" className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                location.pathname === '/app/parametres' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+              }`}>
+                <Settings className="w-4 h-4" /> Paramètres
+              </Link>
+            </>
           )}
         </nav>
         <div className="p-3 border-t border-white/10">
@@ -397,17 +413,6 @@ export default function Layout({ children }) {
         <nav className="layout-nav fixed bottom-0 left-0 right-0 z-30 bg-white/90 dark:bg-dark-800/90 backdrop-blur-xl border-t border-gray-200/60 dark:border-dark-700/60 safe-area-bottom" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <div className="flex items-center justify-around h-14">
             {MOBILE_TABS.map(item => {
-              if (item.to === '__sectors') {
-                return (
-                  <button key="sectors" onClick={() => { setShowSectors(!showSectors); setShowMoreSheet(false) }}
-                    className={`flex flex-col items-center justify-center gap-0.5 w-14 h-14 transition-colors touch-target ${
-                      showSectors ? 'text-brand-500' : 'text-gray-500 dark:text-gray-400'
-                    }`}>
-                    <Layers className="w-5 h-5" />
-                    <span className="text-[10px]">{item.label}</span>
-                  </button>
-                )
-              }
               if (item.to === '__more') {
                 return (
                   <button key="more" onClick={() => { setShowMoreSheet(!showMoreSheet); setShowSectors(false) }}
@@ -435,63 +440,6 @@ export default function Layout({ children }) {
         </nav>
       )}
 
-      {/* ═══ MOBILE: SECTORS BOTTOM SHEET ═══ */}
-      {showSectors && (
-        <>
-          <div className="bottom-sheet-overlay" onClick={() => setShowSectors(false)} />
-          <div className="bottom-sheet" ref={sheetRef} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-            <div className="px-4 pt-3 pb-2 flex items-center justify-between">
-              <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto" />
-            </div>
-            <div className="px-4 pb-2">
-              <h3 className="text-base font-bold dark:text-white">Secteurs & Modules</h3>
-              <p className="text-xs text-gray-500 dark:text-gray-400">Sélectionnez votre activité</p>
-            </div>
-            <div className="overflow-y-auto max-h-[65vh] pb-4">
-              {visibleSectors.map(sectorId => {
-                const nav = SECTOR_NAV[sectorId]
-                if (!nav) return null
-                const Icon = ICONS[nav.icon] || Layers
-                const isActive = nav.sub
-                  ? nav.sub.some(sub => location.pathname === sub.to)
-                  : location.pathname === nav.to
-
-                if (nav.sub) {
-                  return (
-                    <div key={sectorId}>
-                      <div className="px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
-                        <Icon className="w-3.5 h-3.5 inline mr-2" />{nav.label}
-                      </div>
-                      <div className="grid grid-cols-2 gap-1.5 px-4 mb-2">
-                        {nav.sub.map(sub => (
-                          <Link key={sub.to} to={sub.to}
-                            className={`flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm transition-all touch-feedback ${
-                              location.pathname === sub.to
-                                ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25'
-                                : 'bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600'
-                            }`}>
-                            {sub.label}
-                          </Link>
-                        ))}
-                      </div>
-                    </div>
-                  )
-                }
-
-                return (
-                  <Link key={sectorId} to={nav.to}
-                    className={`flex items-center gap-3 px-4 py-3 mx-4 my-1 rounded-xl text-sm transition-all touch-feedback ${
-                      isActive ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25' : 'text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700'
-                    }`}>
-                    <Icon className="w-4 h-4" /> {nav.label}
-                  </Link>
-                )
-              })}
-            </div>
-          </div>
-        </>
-      )}
-
       {/* ═══ MOBILE: MORE BOTTOM SHEET ═══ */}
       {showMoreSheet && (
         <>
@@ -501,30 +449,101 @@ export default function Layout({ children }) {
               <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-3" />
               <h3 className="text-base font-bold dark:text-white">Plus</h3>
             </div>
-            <div className="px-4 pb-6 space-y-1">
-              <Link to="/app/ia" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                <BarChart3 className="w-5 h-5 text-brand-500" /> Analyses & Prévisions
-              </Link>
-              {user?.role === 'admin' && (
-                <Link to="/app/documents" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                  <ShieldCheck className="w-5 h-5 text-brand-500" /> Documents KYC/KYB
+            <div className="overflow-y-auto max-h-[65vh] pb-4">
+              <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Navigation</div>
+              <div className="px-4 pb-2 grid grid-cols-2 gap-2">
+                <Link to="/app/ventes/historique" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                  <History className="w-4 h-4 text-gray-500" /> Historique
                 </Link>
-              )}
-              {user?.role === 'admin' && (
-                <Link to="/app/logiciels" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                  <Monitor className="w-5 h-5 text-brand-500" /> Logiciels
+                <Link to="/app/ventes/recus" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                  <FileText className="w-4 h-4 text-gray-500" /> Reçus
                 </Link>
-              )}
-              {user?.role === 'admin' && (
-                <Link to="/app/parametres" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                  <Settings className="w-5 h-5 text-gray-500" /> Paramètres
+                <Link to="/app/ventes/rapports" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                  <BarChart3 className="w-4 h-4 text-gray-500" /> Rapports
                 </Link>
+                <Link to="/app/profit" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                  <TrendingUp className="w-4 h-4 text-gray-500" /> Profit
+                </Link>
+                <Link to="/app/fournisseurs" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                  <Truck className="w-4 h-4 text-gray-500" /> Fournisseurs
+                </Link>
+                <Link to="/app/retours" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                  <RotateCcw className="w-4 h-4 text-gray-500" /> Retours
+                </Link>
+              </div>
+
+              <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Secteurs</div>
+              <div className="px-4 pb-2">
+                <Link to="/app/finance" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                  <Landmark className="w-4 h-4 text-emerald-500" /> Finance & Comptabilité
+                </Link>
+                <Link to="/app/industrie" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                  <Factory className="w-4 h-4 text-slate-500" /> Industrie & Artisanat
+                </Link>
+                <Link to="/app/transport" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                  <Truck className="w-4 h-4 text-teal-500" /> Transport & Logistique
+                </Link>
+                <Link to="/app/sante" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                  <Heart className="w-4 h-4 text-rose-500" /> Santé & Pharmacies
+                </Link>
+                <Link to="/app/education" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                  <GraduationCap className="w-4 h-4 text-violet-500" /> Éducation & Formation
+                </Link>
+                <Link to="/app/ong" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                  <HandHeart className="w-4 h-4 text-amber-500" /> ONG & Associations
+                </Link>
+              </div>
+
+              <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Outils</div>
+              <div className="px-4 pb-2">
+                <Link to="/app/ia" onClick={() => setShowMoreSheet(false)}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                  <BarChart3 className="w-4 h-4 text-brand-500" /> Analyses & Prévisions
+                </Link>
+                {user?.role === 'admin' && (
+                  <Link to="/app/documents" onClick={() => setShowMoreSheet(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                    <ShieldCheck className="w-4 h-4 text-blue-500" /> Documents KYC/KYB
+                  </Link>
+                )}
+                {user?.role === 'admin' && (
+                  <Link to="/app/logiciels" onClick={() => setShowMoreSheet(false)}
+                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                    <Monitor className="w-4 h-4 text-violet-500" /> Logiciels
+                  </Link>
+                )}
+              </div>
+
+              {user?.role === 'admin' && (
+                <>
+                  <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Administration</div>
+                  <div className="px-4 pb-2">
+                    <Link to="/app/parametres" onClick={() => setShowMoreSheet(false)}
+                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
+                      <Settings className="w-4 h-4 text-gray-500" /> Paramètres
+                    </Link>
+                  </div>
+                </>
               )}
-              <div className="border-t border-gray-100 dark:border-dark-700 my-2" />
-              <button onClick={() => { logout(); navigate('/') }}
-                className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-500 active:bg-red-50 dark:active:bg-red-900/20 touch-feedback">
-                <LogOut className="w-5 h-5" /> Déconnexion
-              </button>
+
+              <div className="px-4 border-t border-gray-100 dark:border-dark-700 mt-2 pt-3">
+                <button onClick={() => { logout(); navigate('/') }}
+                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-500 active:bg-red-50 dark:active:bg-red-900/20 touch-feedback">
+                  <LogOut className="w-5 h-5" /> Déconnexion
+                </button>
+              </div>
             </div>
           </div>
         </>
