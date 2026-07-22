@@ -519,6 +519,13 @@ export function getUsersForAdmin(adminId) {
   return getAll('users').filter(u => u.adminId === adminId || u.role === 'admin')
 }
 
+export function getUserByEmail(email) {
+  if (dbApi) {
+    try { return dbApi.getUserByEmail(email) || null } catch { return null }
+  }
+  return getAll('users').find(u => u.email === email) || null
+}
+
 // ── Vérification ──
 import { getVerificationStatus as _getVerificationStatus, isEmailVerified as _isEmailVerified, isPhoneVerified as _isPhoneVerified } from './verification'
 
@@ -564,9 +571,14 @@ export async function authentifier(nom, motDePasse) {
     if (isLocked()) return { error: 'locked' }
   } catch { return { error: 'locked' } }
 
+  // Accept email or username — resolve to user object
+  const isEmail = nom.includes('@')
+
   if (dbApi) {
     try {
-      const result = await dbApi.verifyPassword(nom, motDePasse)
+      const u = isEmail ? dbApi.getUserByEmail(nom) : null
+      const lookupName = u ? u.nom : nom
+      const result = await dbApi.verifyPassword(lookupName, motDePasse)
       if (!result) { recordFailedAttempt(); addLog('Tentative échouée', `Utilisateur inconnu: ${nom}`); return null }
       if (result.__error) { return { error: result.message || 'Erreur de connexion' } }
       if (result.failed) {
@@ -574,18 +586,19 @@ export async function authentifier(nom, motDePasse) {
         addLog('Tentative échouée', `Mot de passe incorrect: ${nom}`, result.user?.id, nom)
         return locked ? { error: 'locked' } : null
       }
-      if (!result.id) { console.error('authentifier: missing id in result', result); return { error: 'Erreur de connexion' } }
+      if (!result.id) { return { error: 'Erreur de connexion' } }
       clearLoginAttempts()
       addLog('Connexion réussie', nom, result.id, result.nom)
       const adminId = result.role === 'admin' ? result.id : (result.adminId || null)
-      return { id: result.id, nom: result.nom, role: result.role, adminId }
-    } catch (e) {
-      console.error('authentifier error:', e)
+      return { id: result.id, nom: result.nom, role: result.role, adminId, email: result.email, telephone: result.telephone }
+    } catch {
       return { error: 'Erreur de connexion à la base de données' }
     }
   }
 
-  const u = getAll('users').find(u => u.nom === nom)
+  const u = isEmail
+    ? getAll('users').find(u => u.email === nom)
+    : getAll('users').find(u => u.nom === nom)
   if (!u) { recordFailedAttempt(); addLog('Tentative échouée', `Utilisateur inconnu: ${nom}`); return null }
 
   if (u.salt && u.motDePasse.length === 64) {
@@ -611,7 +624,7 @@ export async function authentifier(nom, motDePasse) {
   clearLoginAttempts()
   addLog('Connexion réussie', nom, u.id, nom)
   const adminId = u.role === 'admin' ? u.id : (u.adminId || null)
-  return { id: u.id, nom: u.nom, role: u.role, adminId }
+  return { id: u.id, nom: u.nom, role: u.role, adminId, email: u.email, telephone: u.telephone }
 }
 
 export async function changerMotDePasse(userId, ancien, nouveau) {

@@ -1,12 +1,13 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { inscrire, validatePassword, getCompanySettings, saveCompanySettings, addLog, setCurrentAdminId } from '../lib/db'
 import { isFirebaseReady } from '../lib/firebase'
 import { pushToFirestore } from '../lib/firebaseSync'
 import { normalizePhone, isPhoneValid, formatPhoneDisplay } from '../lib/phone'
+import { envoyerEmailOTP, verifierOTP } from '../lib/verification'
 import { useAuth } from '../context/AuthContext'
 import { SECTORS, MODULE_LABELS } from '../lib/modules'
-import { ShoppingCart, Landmark, Factory, Truck, Heart, GraduationCap, HandHeart, Check, Eye, EyeOff, ArrowLeft, CheckCircle, AlertTriangle } from 'lucide-react'
+import { ShoppingCart, Landmark, Factory, Truck, Heart, GraduationCap, HandHeart, Check, Eye, EyeOff, ArrowLeft, CheckCircle, AlertTriangle, Shield, Mail, RefreshCw } from 'lucide-react'
 
 const ICONS = { ShoppingCart, Landmark, Factory, Truck, Heart, GraduationCap, HandHeart }
 
@@ -35,6 +36,12 @@ export default function InscriptionPage() {
   const [loading, setLoading] = useState(false)
   const [enabledSectors, setEnabledSectors] = useState(['commerce'])
   const [showModules, setShowModules] = useState(null)
+  const [pendingUserId, setPendingUserId] = useState(null)
+  const [otpCode, setOtpCode] = useState('')
+  const [otpError, setOtpError] = useState('')
+  const [otpCountdown, setOtpCountdown] = useState(60)
+  const [otpResendable, setOtpResendable] = useState(false)
+  const [otpSending, setOtpSending] = useState(false)
   const { login } = useAuth()
   const navigate = useNavigate()
 
@@ -72,7 +79,7 @@ export default function InscriptionPage() {
       return
     }
 
-      setLoading(true)
+    setLoading(true)
     try {
       const result = await inscrire(form.nom.trim(), form.motDePasse, form.email.trim(), normalizePhone(form.telephone.trim()), form.role)
       if (result.error) {
@@ -95,23 +102,76 @@ export default function InscriptionPage() {
         pushToFirestore(email, result.user.id).catch(() => {})
       }
 
+      // Send OTP to email for verification
+      if (result.user?.id) {
+        setPendingUserId(result.user.id)
+        const otpResult = await envoyerEmailOTP(result.user.id, form.email.trim())
+        if (otpResult?.success) {
+          setStep(3)
+          setOtpCountdown(60)
+          setOtpResendable(false)
+        } else {
+          // If OTP fails, still allow login
+          setSuccess(true)
+          setTimeout(async () => {
+            try {
+              const loginResult = await login(form.nom.trim(), form.motDePasse)
+              if (loginResult === true) navigate('/app')
+              else { setSuccess(false); setError('Compte créé mais connexion échouée.') }
+            } catch { setSuccess(false); setError('Compte créé mais connexion échouée.') }
+          }, 1500)
+        }
+      }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // OTP countdown
+  useEffect(() => {
+    if (step !== 3) return
+    setOtpCountdown(60)
+    setOtpResendable(false)
+    const iv = setInterval(() => {
+      setOtpCountdown(prev => {
+        if (prev <= 1) { setOtpResendable(true); return 0 }
+        return prev - 1
+      })
+    }, 1000)
+    return () => clearInterval(iv)
+  }, [step])
+
+  const handleVerifyOTP = async (e) => {
+    e.preventDefault()
+    setOtpError('')
+    if (otpCode.length !== 6) { setOtpError('Code à 6 chiffres requis'); return }
+
+    const result = verifierOTP(pendingUserId, 'email', otpCode)
+    if (result?.valid) {
       setSuccess(true)
       setTimeout(async () => {
         try {
           const loginResult = await login(form.nom.trim(), form.motDePasse)
-          if (loginResult === true) {
-            navigate('/app')
-          } else {
-            setSuccess(false)
-            setError('Compte créé mais connexion échouée. Veuillez vous connecter manuellement.')
-          }
-        } catch {
-          setSuccess(false)
-          setError('Compte créé mais connexion échouée. Veuillez vous connecter manuellement.')
-        }
+          if (loginResult === true) navigate('/app')
+          else { setSuccess(false); setError('Vérification réussie mais connexion échouée.') }
+        } catch { setSuccess(false); setError('Vérification réussie mais connexion échouée.') }
       }, 1500)
-    } finally {
-      setLoading(false)
+    } else {
+      setOtpError(result?.error || 'Code incorrect ou expiré')
+      setOtpCode('')
+    }
+  }
+
+  const handleResendOTP = async () => {
+    setOtpSending(true)
+    const result = await envoyerEmailOTP(pendingUserId, form.email.trim())
+    setOtpSending(false)
+    if (result?.success) {
+      setOtpResendable(false)
+      setOtpCountdown(60)
+      setOtpError('')
+    } else {
+      setOtpError('Erreur lors du renvoi. Réessayez.')
     }
   }
 
@@ -146,6 +206,7 @@ export default function InscriptionPage() {
           <h1 className="text-xl font-bold dark:text-white">GESTOCOM CI</h1>
           {step === 1 && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Choisir vos modules</p>}
           {step === 2 && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Créer votre compte</p>}
+          {step === 3 && <p className="text-xs text-gray-500 dark:text-gray-400 mt-0.5">Vérifier votre email</p>}
         </div>
 
         {step === 1 && (
@@ -327,6 +388,62 @@ export default function InscriptionPage() {
             <div className="mt-2 text-center">
               <span className="text-sm text-gray-500 dark:text-gray-400">Déjà un compte ? </span>
               <Link to="/login" className="text-sm font-medium text-brand-600 dark:text-brand-400 hover:text-brand-700 dark:hover:text-brand-300">Se connecter</Link>
+            </div>
+          </form>
+        )}
+
+        {step === 3 && (
+          <form onSubmit={handleVerifyOTP} className="bg-white dark:bg-dark-800 rounded-2xl shadow-xl p-6 border border-gray-100 dark:border-dark-700">
+            <div className="text-center mb-6">
+              <div className="w-14 h-14 bg-green-100 dark:bg-green-900/30 rounded-full flex items-center justify-center mx-auto mb-3">
+                <Mail className="w-7 h-7 text-green-600 dark:text-green-400" />
+              </div>
+              <h2 className="text-lg font-semibold dark:text-white">Vérifiez votre email</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+                Un code à 6 chiffres a été envoyé à<br />
+                <span className="font-medium text-gray-700 dark:text-gray-300">{form.email}</span>
+              </p>
+            </div>
+
+            {otpError && (
+              <div className="bg-red-50 dark:bg-red-900/30 text-red-600 dark:text-red-300 text-sm px-4 py-2 rounded-lg mb-4">{otpError}</div>
+            )}
+
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">Code de vérification</label>
+              <div className="relative">
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  pattern="[0-9]*"
+                  value={otpCode}
+                  onChange={e => setOtpCode(e.target.value.replace(/\D/g, '').slice(0, 6))}
+                  placeholder="000000"
+                  maxLength={6}
+                  autoFocus
+                  className="w-full px-4 py-3 border border-gray-300 dark:border-dark-600 rounded-lg text-2xl font-mono text-center tracking-[0.5em] focus:ring-2 focus:ring-green-500 focus:border-green-500 outline-none bg-white dark:bg-dark-700 dark:text-white"
+                />
+                <div className="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">
+                  {otpCountdown > 0 ? `${otpCountdown}s` : ''}
+                </div>
+              </div>
+            </div>
+
+            <button type="submit" className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 rounded-lg transition-all" disabled={otpCode.length !== 6}>
+              <Shield className="w-4 h-4 inline mr-2" />
+              Vérifier mon email
+            </button>
+
+            <div className="flex items-center justify-between mt-3">
+              <button type="button" onClick={() => setStep(2)}
+                className="text-sm text-gray-500 dark:text-gray-400 hover:text-gray-700 dark:hover:text-gray-300 py-2">
+                Retour
+              </button>
+              <button type="button" onClick={handleResendOTP} disabled={!otpResendable || otpSending}
+                className="text-sm text-green-600 dark:text-green-400 hover:text-green-700 disabled:opacity-50 disabled:cursor-not-allowed flex items-center gap-1 py-2">
+                <RefreshCw className={`w-3 h-3 ${otpSending ? 'animate-spin' : ''}`} />
+                {otpSending ? 'Envoi...' : otpResendable ? 'Renvoyer' : `Renvoyer (${otpCountdown}s)`}
+              </button>
             </div>
           </form>
         )}

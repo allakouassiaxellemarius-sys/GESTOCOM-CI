@@ -104,7 +104,7 @@ export default function LoginPage() {
       } else if (result === true) {
         navigate('/app')
       } else {
-        setError('Nom ou mot de passe incorrect')
+        setError('Email/nom ou mot de passe incorrect')
         checkLock()
       }
     } finally {
@@ -320,12 +320,13 @@ export default function LoginPage() {
             )}
 
             <div className="mb-4">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Nom d'utilisateur</label>
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">Email ou Nom d'utilisateur</label>
               <input
                 type="text"
                 value={nom}
                 onChange={e => setNom(e.target.value)}
                 disabled={locked}
+                placeholder="email@exemple.com ou votre nom"
                 className="w-full px-3 py-2.5 border border-gray-300 dark:border-dark-600 rounded-lg text-sm focus:ring-2 focus:ring-brand-500 focus:border-brand-500 outline-none bg-white dark:bg-dark-700 dark:text-white disabled:opacity-50"
                 required
               />

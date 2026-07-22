@@ -311,6 +311,10 @@ function getUserByName(nom) {
   return db.prepare('SELECT * FROM users WHERE nom = ?').get(nom)
 }
 
+function getUserByEmail(email) {
+  return db.prepare('SELECT * FROM users WHERE email = ?').get(email)
+}
+
 function isDefaultAdmin(userId) {
   const u = getUserById(userId)
   return !!(u && (u.isDefault || u.nom === 'Admin'))
@@ -345,13 +349,14 @@ function deleteUser(userId) {
   return true
 }
 
-function verifyPassword(nom, motDePasse) {
-  const u = getUserByName(nom)
+function verifyPassword(identifier, motDePasse) {
+  const isEmail = identifier.includes('@')
+  const u = isEmail ? getUserByEmail(identifier) : getUserByName(identifier)
   if (!u || !u.id) return null
   if (u.salt && u.motDePasse.length === 64) {
     const hash = pbkdf2HashSync(motDePasse, u.salt)
     if (hash !== u.motDePasse) return { failed: true, user: { id: u.id, nom: u.nom } }
-    return { id: u.id, nom: u.nom, role: u.role, adminId: u.admin_id || (u.role === 'admin' ? u.id : null) }
+    return { id: u.id, nom: u.nom, role: u.role, email: u.email, telephone: u.telephone, adminId: u.admin_id || (u.role === 'admin' ? u.id : null) }
   }
   return { failed: true, user: { id: u.id, nom: u.nom } }
 }
