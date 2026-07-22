@@ -1,11 +1,14 @@
 import { useMemo, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
 import { getVentes, getBeneficeParJour, getDepenses } from '../lib/db'
-import { getStatsStock, getAlertesStock, SECTEURS_COMMERCE } from '../lib/stockDb'
+import { getStatsStock, getAlertesStock } from '../lib/stockDb'
+import { SECTORS } from '../lib/modules'
 import { useSector } from '../context/SectorContext'
 import { useDevice } from '../context/DeviceContext'
 import { useAuth } from '../context/AuthContext'
-import { Package, ShoppingCart, TrendingUp, DollarSign, Briefcase, Warehouse, AlertTriangle, Plus, ArrowRight, Bell, Layers } from 'lucide-react'
+import { Package, ShoppingCart, TrendingUp, DollarSign, Briefcase, Warehouse, AlertTriangle, Plus, ArrowRight, Bell, Layers, Landmark, Factory, Heart, GraduationCap, HandHeart, Truck } from 'lucide-react'
+
+const ICONS = { ShoppingCart, Landmark, Factory, Truck, Heart, GraduationCap, HandHeart, Layers }
 
 export default function DashboardPage() {
   const navigate = useNavigate()
@@ -75,18 +78,21 @@ export default function DashboardPage() {
             <Layers className="w-3 h-3" />
             Tous
           </button>
-          {SECTEURS_COMMERCE.filter(s => enabledSectors.includes(s.id)).map(s => (
-            <button
-              key={s.id}
-              onClick={() => setSector(s.id)}
-              className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
-                activeSector === s.id ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25' : 'bg-white dark:bg-dark-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-dark-700'
-              }`}
-            >
-              <span>{s.icon}</span>
-              <span>{s.nom}</span>
-            </button>
-          ))}
+          {Object.values(SECTORS).filter(s => enabledSectors.includes(s.id)).map(s => {
+            const SIcon = ICONS[s.icon] || Layers
+            return (
+              <button
+                key={s.id}
+                onClick={() => setSector(s.id)}
+                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-xs font-medium whitespace-nowrap transition-all ${
+                  activeSector === s.id ? 'bg-brand-500 text-white shadow-md shadow-brand-500/25' : 'bg-white dark:bg-dark-800 text-gray-600 dark:text-gray-400 border border-gray-200 dark:border-dark-700'
+                }`}
+              >
+                <SIcon className="w-3 h-3" />
+                <span>{s.nom}</span>
+              </button>
+            )
+          })}
         </div>
       )}
 

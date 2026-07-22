@@ -118,7 +118,7 @@ const MOBILE_TABS = [
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth()
-  const { activeSector, setSector, isFiltered, sectorDef, enabledSectors, sectorChosen } = useSector()
+  const { activeSector, setSector, isFiltered, sectorDef, isTopSector, enabledSectors, sectorChosen } = useSector()
   const { isMobile, isLandscape } = useDevice()
   const location = useLocation()
   const navigate = useNavigate()
@@ -223,7 +223,16 @@ export default function Layout({ children }) {
             className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left">
             <Filter className="w-3.5 h-3.5 text-brand-400" />
             <span className="flex-1 truncate text-gray-300">
-              {isFiltered ? `${sectorDef?.icon} ${sectorDef?.nom}` : 'Tous les secteurs'}
+              {isFiltered ? (
+                isTopSector ? (
+                  <span className="inline-flex items-center gap-1">
+                    {(() => { const I = ICONS[sectorDef?.icon] || Layers; return <I className="w-3.5 h-3.5" /> })()}
+                    {sectorDef?.nom}
+                  </span>
+                ) : (
+                  <span>{sectorDef?.icon} {sectorDef?.nom}</span>
+                )
+              ) : 'Tous les secteurs'}
             </span>
             <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${showSectorDropdown ? 'rotate-180' : ''}`} />
           </button>
@@ -235,14 +244,17 @@ export default function Layout({ children }) {
                 }`}>
                 Tous les secteurs
               </button>
-              {SECTEURS_COMMERCE.filter(s => enabledSectors.includes(s.id)).map(s => (
-                <button key={s.id} onClick={() => { setSector(s.id); setShowSectorDropdown(false) }}
-                  className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                    activeSector === s.id ? 'bg-brand-500/20 text-brand-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                  }`}>
-                  {s.icon} {s.nom}
-                </button>
-              ))}
+              {Object.values(SECTORS).filter(s => enabledSectors.includes(s.id)).map(s => {
+                const SIcon = ICONS[s.icon] || Layers
+                return (
+                  <button key={s.id} onClick={() => { setSector(s.id); setShowSectorDropdown(false) }}
+                    className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 ${
+                      activeSector === s.id ? 'bg-brand-500/20 text-brand-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+                    }`}>
+                    <SIcon className="w-3.5 h-3.5" /> {s.nom}
+                  </button>
+                )
+              })}
             </div>
           )}
         </div>
@@ -333,7 +345,14 @@ export default function Layout({ children }) {
               {isMobile && isFiltered && (
                 <button onClick={() => setSector('all')} className="ml-2 px-2 py-0.5 text-[10px] bg-brand-500/20 text-brand-400 rounded-full flex items-center gap-1 shrink-0">
                   <Filter className="w-2.5 h-2.5" />
-                  {sectorDef?.icon} {sectorDef?.nom?.slice(0, 12)}
+                  {isTopSector ? (
+                    <>
+                      {(() => { const I = ICONS[sectorDef?.icon] || Layers; return <I className="w-2.5 h-2.5" /> })()}
+                      {sectorDef?.nom?.slice(0, 12)}
+                    </>
+                  ) : (
+                    <>{sectorDef?.icon} {sectorDef?.nom?.slice(0, 12)}</>
+                  )}
                   <X className="w-2.5 h-2.5" />
                 </button>
               )}

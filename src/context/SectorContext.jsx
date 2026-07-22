@@ -1,10 +1,13 @@
 import { createContext, useContext, useState, useMemo } from 'react'
 import { getProductsV2, SECTEURS_COMMERCE } from '../lib/stockDb'
 import { getCompanySettings } from '../lib/db'
+import { SECTORS } from '../lib/modules'
+import { useAuth } from './AuthContext'
 
 const SectorContext = createContext(null)
 
 export function SectorProvider({ children }) {
+  const { user } = useAuth()
   const [activeSector, setActiveSector] = useState(() => {
     try { return localStorage.getItem('gestocom_active_sector') || 'all' } catch { return 'all' }
   })
@@ -19,12 +22,13 @@ export function SectorProvider({ children }) {
   }
 
   const isFiltered = activeSector !== 'all'
-  const sectorDef = isFiltered ? SECTEURS_COMMERCE.find(s => s.id === activeSector) : null
+  const sectorDef = isFiltered ? (SECTORS[activeSector] || SECTEURS_COMMERCE.find(s => s.id === activeSector)) : null
+  const isTopSector = isFiltered && !!SECTORS[activeSector]
 
   const enabledSectors = useMemo(() => {
     const settings = getCompanySettings()
     return settings.enabledSectors || ['commerce']
-  }, [])
+  }, [user])
 
   const productsV2 = useMemo(() => getProductsV2(), [activeSector])
 
@@ -57,7 +61,7 @@ export function SectorProvider({ children }) {
   }
 
   const value = {
-    activeSector, setSector, isFiltered, sectorDef, enabledSectors, sectorChosen,
+    activeSector, setSector, isFiltered, sectorDef, isTopSector, enabledSectors, sectorChosen,
     filterVentes, filterMouvements, filterAlertes,
     productsV2, sectorProductIds, sectorProductNames,
   }
