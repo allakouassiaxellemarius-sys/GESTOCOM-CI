@@ -15,7 +15,6 @@ let db = null
 
 export function initFirebase() {
   if (!firebaseConfig.apiKey || !firebaseConfig.projectId) {
-    console.warn('[Firebase] Config manquante — sync cloud désactivée')
     return false
   }
   try {

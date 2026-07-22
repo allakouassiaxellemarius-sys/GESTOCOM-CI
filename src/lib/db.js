@@ -76,7 +76,6 @@ export async function loadSqliteCache(sqlite) {
     }
   }
   sqlReady = true
-  console.log('[DB] SQLite cache loaded')
 }
 
 function rowToJs(row) {
@@ -123,7 +122,7 @@ function setAll(name, data) {
   try { localStorage.setItem(getKey(name), JSON.stringify(data)) } catch {}
   // Write-through to SQLite
   if (sqlReady && sqliteModule) {
-    syncTableToSqlite(name, data).catch(e => console.warn('[DB] SQLite write error:', e))
+    syncTableToSqlite(name, data).catch(() => {})
   }
 }
 
@@ -151,7 +150,7 @@ function saveSettings(key, value) {
   sqlSettingsCache[key] = value
   try { localStorage.setItem(getKey(key), JSON.stringify(value)) } catch {}
   if (sqlReady && sqliteModule) {
-    sqliteModule.sqlSetSetting(key, value).catch(e => console.warn('[DB] SQLite setting write error:', e))
+    sqliteModule.sqlSetSetting(key, value).catch(() => {})
   }
 }
 

@@ -1,7 +1,7 @@
 import { useState, useMemo, useEffect } from 'react'
 import { getDepenses, addDepense, updateDepense, deleteDepense } from '../lib/db'
 import { useSector } from '../context/SectorContext'
-import { Plus, Trash2, X, Pencil, Home, Users, Truck, UtensilsCrossed, HelpCircle, Filter, Download } from 'lucide-react'
+import { Plus, Trash2, X, Pencil, Filter, Download } from 'lucide-react'
 import SearchInput from '../components/SearchInput'
 import SortableHeader, { useSort } from '../components/SortableHeader'
 import DateRangeFilter, { useDateFilter } from '../components/DateRangeFilter'

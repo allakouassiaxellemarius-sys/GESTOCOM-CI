@@ -22,9 +22,9 @@ import { pushToFirestore } from '../lib/firebaseSync'
 import {
   Building2, Users, Package, ShoppingCart, Heart, BarChart3, Shield,
   Save, CheckCircle, Trash2, AlertTriangle, Search, Sun, Moon,
-  Minus, Plus, Lock, MapPin, Phone, Mail, Tag, Eye, EyeOff,
-  FileText, Download, Upload, RefreshCw, Percent, CreditCard,
-  Star, UserPlus, Settings, Volume2, VolumeX,
+  Minus, Plus, Lock, MapPin, Phone, Mail, Tag,
+  FileText, Download, Upload, RefreshCw, Percent,
+  UserPlus, Settings, Volume2, VolumeX,
   Bell, Smartphone, Key, ShieldCheck, MessageSquare, Layers,
 } from 'lucide-react'
 

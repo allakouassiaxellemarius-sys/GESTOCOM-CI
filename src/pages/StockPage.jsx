@@ -15,12 +15,11 @@ import { addLog } from '../lib/db'
 import { useSector } from '../context/SectorContext'
 import { useDevice } from '../context/DeviceContext'
 import {
-  Plus, Edit2, Trash2, RefreshCw, X, Printer, Upload, Filter, Download,
-  Search, Package, AlertTriangle, ArrowDownCircle, ArrowUpCircle,
+  Plus, Edit2, Trash2, RefreshCw, X, Printer, Upload, Download,
+  Package, AlertTriangle, ArrowDownCircle, ArrowUpCircle,
   MinusCircle, ArrowRightCircle, Warehouse, BarChart3, TrendingUp, TrendingDown,
-  ShoppingCart, RotateCcw, Tag, Calendar, Layers, ClipboardList, CircleDot, Check,
-  Undo2, Palette, Ruler, Shield, Clock, BookOpen, FileText, Star, AlertCircle,
-  Zap, ChevronRight, Eye, Hash, Truck, MapPin, ScanBarcode, Copy, Sparkles,
+  RotateCcw, Calendar, ClipboardList, Check,
+  Ruler, Shield, Clock, AlertCircle, ScanBarcode, Sparkles,
 } from 'lucide-react'
 import { BarcodeValue, BarcodeLabel, BarcodeSheet } from '../components/BarcodeLabel'
 import BarcodeScanner from '../components/BarcodeScanner'

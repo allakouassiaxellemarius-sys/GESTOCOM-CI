@@ -2,7 +2,7 @@ import { useState, useMemo } from 'react'
 import {
   BarChart3, TrendingUp, TrendingDown, Minus, AlertTriangle, Shield,
   ShoppingCart, Package, Users, UserX, RefreshCw,
-  Zap, Target, Eye, Filter, ArrowUp, ArrowDown,
+  Zap, Target, Eye, ArrowUp,
   Clock, Star, Wallet, Activity, Bell, DollarSign,
 } from 'lucide-react'
 import {

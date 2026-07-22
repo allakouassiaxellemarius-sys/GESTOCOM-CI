@@ -73,9 +73,7 @@ async function runMigrations() {
   for (const stmt of statements) {
     try {
       await db.execute(stmt)
-    } catch (e) {
-      console.warn('[SQL] Migration statement error:', e.message, stmt.slice(0, 80))
-    }
+    } catch {}
   }
 }
 
@@ -238,9 +236,7 @@ export async function migrateLocalStorage() {
         await sqlInsert(sqlTable, row)
         migrated++
       }
-    } catch (e) {
-      console.warn(`[SQL migrate] ${lsKey}:`, e.message)
-    }
+    } catch {}
   }
 
   // Migrate settings
@@ -253,14 +249,11 @@ export async function migrateLocalStorage() {
       if (existing !== null) continue
       await sqlSetSetting(settingKey, val)
       migrated++
-    } catch (e) {
-      console.warn(`[SQL migrate] setting ${lsKey}:`, e.message)
-    }
+    } catch {}
   }
 
   if (migrated > 0) {
     await sqlSetSetting('_migrated_v1', true)
-    console.log(`[SQL] Migration complete: ${migrated} records`)
   }
 
   return migrated
@@ -319,9 +312,7 @@ export async function forceMigrateFromLocalStorage() {
         await sqlInsert(sqlTable, row)
         migrated++
       }
-    } catch (e) {
-      console.warn(`[SQL force migrate] ${lsKey}:`, e.message)
-    }
+    } catch {}
   }
 
   for (const [lsKey, settingKey] of Object.entries(SETTINGS_MAP)) {
@@ -331,11 +322,8 @@ export async function forceMigrateFromLocalStorage() {
       const val = JSON.parse(raw)
       await sqlSetSetting(settingKey, val)
       migrated++
-    } catch (e) {
-      console.warn(`[SQL force migrate] setting ${lsKey}:`, e.message)
-    }
+    } catch {}
   }
 
-  console.log(`[SQL] Force migration complete: ${migrated} records`)
   return migrated
 }

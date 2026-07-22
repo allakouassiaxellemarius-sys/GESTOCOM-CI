@@ -24,11 +24,8 @@ async function autoSyncFromCloud(userObj) {
     const cloudData = await pullFromFirestore(email)
     if (cloudData && cloudData.data) {
       restoreDataFromCloud(cloudData)
-      console.log('[Sync] Données restaurées depuis le cloud')
     }
-  } catch (e) {
-    console.warn('[Sync] Erreur pull cloud:', e)
-  }
+  } catch {}
 }
 
 async function autoSyncToCloud(userObj) {
@@ -37,10 +34,7 @@ async function autoSyncToCloud(userObj) {
   if (!email || !userObj.adminId) return
   try {
     await pushToFirestore(email, userObj.adminId)
-    console.log('[Sync] Données poussées vers le cloud')
-  } catch (e) {
-    console.warn('[Sync] Erreur push cloud:', e)
-  }
+  } catch {}
 }
 
 export function AuthProvider({ children }) {

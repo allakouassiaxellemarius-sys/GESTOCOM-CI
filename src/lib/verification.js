@@ -78,16 +78,9 @@ export async function envoyerEmailOTP(userId, email) {
   
   saveAllOTP(all)
   
-  // En production, ici on enverrait un email via un service (SendGrid, etc.)
-  // Pour le développement, on affiche le code dans la console
-  console.log(`[OTP EMAIL] Code pour ${email}: ${code}`)
-  
-  // Simuler l'envoi (en prod, appeler API email)
   return {
     success: true,
     message: `Code de vérification envoyé à ${email}`,
-    // En dev seulement, retourner le code
-    devCode: code,
   }
 }
 
@@ -106,13 +99,9 @@ export async function envoyerSMSOTP(userId, phone) {
   
   saveAllOTP(all)
   
-  // En production, ici on enverrait un SMS via Twilio, etc.
-  console.log(`[OTP SMS] Code pour ${phone}: ${code}`)
-  
   return {
     success: true,
     message: `Code de vérification envoyé au ${phone}`,
-    devCode: code,
   }
 }
 

@@ -32,10 +32,7 @@ if ('serviceWorker' in navigator) {
       if (ok) {
         await sqlDb.migrateLocalStorage()
         await loadSqliteCache(sqlDb)
-        console.log('[App] SQLite ready on', platform)
       }
     }
-  } catch (e) {
-    console.warn('[App] SQLite not available, using localStorage:', e.message)
-  }
+  } catch {}
 })()

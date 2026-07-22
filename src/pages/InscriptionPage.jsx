@@ -92,7 +92,7 @@ export default function InscriptionPage() {
       // Push to cloud after registration
       if (isFirebaseReady() && result.user?.id) {
         const email = form.email.trim() || form.nom.trim()
-        pushToFirestore(email, result.user.id).catch(e => console.warn('[Sync] Push après inscription:', e))
+        pushToFirestore(email, result.user.id).catch(() => {})
       }
 
       setSuccess(true)

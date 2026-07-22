@@ -5,7 +5,7 @@ import { getStatsStock, getAlertesStock, SECTEURS_COMMERCE } from '../lib/stockD
 import { useSector } from '../context/SectorContext'
 import { useDevice } from '../context/DeviceContext'
 import { useAuth } from '../context/AuthContext'
-import { Package, ShoppingCart, TrendingUp, DollarSign, Briefcase, Warehouse, AlertTriangle, Plus, ScanBarcode, ArrowRight, Bell, Layers } from 'lucide-react'
+import { Package, ShoppingCart, TrendingUp, DollarSign, Briefcase, Warehouse, AlertTriangle, Plus, ArrowRight, Bell, Layers } from 'lucide-react'
 
 export default function DashboardPage() {
   const navigate = useNavigate()

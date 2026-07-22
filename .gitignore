@@ -8,11 +8,15 @@ release/
 Thumbs.db
 .env
 .env.local
+.env.production
 android/.gradle/
 android/app/build/
 android/build/
 android/capacitor-cordova-android-plugins/build/
-.captcha/
+android/keystore.properties
+android/**/*.jks
+android/**/*.keystore
+captcha/
 .vscode/
 .idea/
 *.swp

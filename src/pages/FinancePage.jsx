@@ -2,8 +2,8 @@ import { useState, useMemo } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 import {
   Landmark, BookOpen, FileText, Scale, TrendingUp, TrendingDown,
-  CreditCard, Search, Plus, Trash2, ChevronDown, Calculator,
-  Receipt, AlertTriangle, Download, Filter, ArrowUpDown, ClipboardList,
+  CreditCard, Plus, Trash2, Calculator,
+  AlertTriangle, Download, ClipboardList,
 } from 'lucide-react'
 import { getEcritures, addEcriture, deleteEcriture, getBalance, getBilan, getCompteResultat, getTresorerie, getCreancesDettes, getExercices, createExercice, getExerciceActif, getRapprochements, addRapprochement } from '../lib/financeDb'
 import { searchComptes, getCompteLabel, JOURNAUX } from '../lib/planComptable'
