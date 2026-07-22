@@ -670,6 +670,21 @@ export async function resetAdminPassword() {
   return true
 }
 
+export async function setNewPassword(userId, newPassword) {
+  if (dbApi) {
+    try { await dbApi.updateUserPassword(userId, newPassword); return true } catch { return { error: 'Erreur lors de la mise à jour du mot de passe.' } }
+  }
+  const items = getAll('users')
+  const idx = items.findIndex(u => u.id === userId)
+  if (idx === -1) return { error: 'Utilisateur introuvable.' }
+  const salt = generateSalt()
+  items[idx].motDePasse = await pbkdf2Hash(newPassword, salt)
+  items[idx].salt = salt
+  setAll('users', items)
+  addLog('Mot de passe réinitialisé', '', userId, items[idx].nom)
+  return true
+}
+
 export async function inscrire(nom, motDePasse, email, telephone, role = 'vendeur') {
   if (dbApi) {
     try { const u = await dbApi.createUser(nom, motDePasse, role, sanitize(email), sanitize(telephone), _currentAdminId)
