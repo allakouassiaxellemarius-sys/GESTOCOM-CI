@@ -44,7 +44,7 @@ export async function pushToFirestore(email, adminId) {
     adminId,
     data,
     syncedAt: new Date().toISOString(),
-    version: '1.4.0',
+    version: '1.5.1',
   })
 }
 

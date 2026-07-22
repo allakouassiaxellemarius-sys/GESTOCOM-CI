@@ -7,7 +7,7 @@ import {
 } from './db'
 import { getProductsV2, getMouvements, getEntrepots, getLots } from './stockDb'
 
-const EXPORT_VERSION = '1.4.0'
+const EXPORT_VERSION = '1.5.1'
 const EXPORT_MAGIC = 'GESTOCOM_SYNC'
 
 export function exportAccountData(adminId) {
