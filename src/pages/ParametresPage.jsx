@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom'
 import { useTheme } from '../context/ThemeContext'
 import { useAuth } from '../context/AuthContext'
 import { useDevice } from '../context/DeviceContext'
+import { useSector } from '../context/SectorContext'
 import {
   getCompanySettings, saveCompanySettings,
   getStockSettings, saveStockSettings,
@@ -1520,6 +1521,7 @@ function SyncSection({ user }) {
 // ── Composant Modules & Secteurs ──
 function ModulesSection() {
   const [settings, setSettings] = useState(getCompanySettings)
+  const { reloadSettings } = useSector()
   const enabled = settings.enabledSectors || ['commerce']
 
   const SECTORS = [
@@ -1537,6 +1539,7 @@ function ModulesSection() {
     const newSettings = { ...settings, enabledSectors: newEnabled }
     setSettings(newSettings)
     saveCompanySettings(newSettings)
+    reloadSettings()
   }
 
   return (

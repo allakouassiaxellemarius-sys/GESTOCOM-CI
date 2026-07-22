@@ -7,6 +7,7 @@ import {
 import { SECTORS, MODULE_LABELS } from '../lib/modules'
 import { getCompanySettings, saveCompanySettings } from '../lib/db'
 import { addLog } from '../lib/db'
+import { useSector } from '../context/SectorContext'
 
 const ICONS = { ShoppingCart, Landmark, Factory, Truck, Heart, GraduationCap, HandHeart }
 
@@ -32,6 +33,7 @@ const ICON_BG = {
 
 export default function ModuleSelectorPage() {
   const navigate = useNavigate()
+  const { reloadSettings } = useSector()
   const [enabledSectors, setEnabledSectors] = useState(() => {
     const settings = getCompanySettings()
     return settings.enabledSectors || ['commerce']
@@ -50,6 +52,7 @@ export default function ModuleSelectorPage() {
     const settings = getCompanySettings()
     saveCompanySettings({ ...settings, enabledSectors, modulesConfigured: true })
     addLog('Modules configurés', enabledSectors.join(', '))
+    reloadSettings()
     navigate('/app')
   }
 

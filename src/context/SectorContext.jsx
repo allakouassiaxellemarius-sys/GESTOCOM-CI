@@ -1,10 +1,15 @@
-import { createContext, useContext, useState, useMemo } from 'react'
+import { createContext, useContext, useState, useMemo, useCallback } from 'react'
 import { getProductsV2, SECTEURS_COMMERCE } from '../lib/stockDb'
 import { getCompanySettings } from '../lib/db'
 import { SECTORS } from '../lib/modules'
 import { useAuth } from './AuthContext'
 
 const SectorContext = createContext(null)
+
+function readEnabledSectors() {
+  const settings = getCompanySettings()
+  return settings.enabledSectors || ['commerce']
+}
 
 export function SectorProvider({ children }) {
   const { user } = useAuth()
@@ -14,6 +19,9 @@ export function SectorProvider({ children }) {
   const [sectorChosen, setSectorChosen] = useState(() => {
     try { return localStorage.getItem('gestocom_active_sector') != null } catch { return false }
   })
+  const [settingsTick, setSettingsTick] = useState(0)
+
+  const reloadSettings = useCallback(() => setSettingsTick(t => t + 1), [])
 
   const setSector = (sector) => {
     setActiveSector(sector)
@@ -25,10 +33,7 @@ export function SectorProvider({ children }) {
   const sectorDef = isFiltered ? (SECTORS[activeSector] || SECTEURS_COMMERCE.find(s => s.id === activeSector)) : null
   const isTopSector = isFiltered && !!SECTORS[activeSector]
 
-  const enabledSectors = useMemo(() => {
-    const settings = getCompanySettings()
-    return settings.enabledSectors || ['commerce']
-  }, [user])
+  const enabledSectors = useMemo(() => readEnabledSectors(), [user, settingsTick])
 
   const productsV2 = useMemo(() => getProductsV2(), [activeSector])
 
@@ -64,6 +69,7 @@ export function SectorProvider({ children }) {
     activeSector, setSector, isFiltered, sectorDef, isTopSector, enabledSectors, sectorChosen,
     filterVentes, filterMouvements, filterAlertes,
     productsV2, sectorProductIds, sectorProductNames,
+    reloadSettings,
   }
 
   return (
