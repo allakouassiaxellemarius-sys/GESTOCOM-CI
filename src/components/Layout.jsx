@@ -11,78 +11,12 @@ import {
   TrendingUp, Receipt, Truck, Settings, LogOut,
   Menu, X, Zap, BarChart3, RefreshCw, Download, Loader,
   History, FileText, ChevronRight, RotateCcw, ClipboardList, MoreHorizontal,
-  Landmark, Factory, Heart, GraduationCap, HandHeart, ChevronDown, Users,
-  Layers, Filter, ShieldCheck, Monitor,
+  Landmark, Factory, Heart, GraduationCap, HandHeart, Users,
+  ShieldCheck, Monitor,
 } from 'lucide-react'
 import { getProductsEnAlerte } from '../lib/db'
 
-const ICONS = { LayoutDashboard, Package, ShoppingCart, TrendingUp, Receipt, Truck, Settings, BarChart3, History, FileText, RotateCcw, ClipboardList, Landmark, Factory, Heart, GraduationCap, HandHeart, Layers, Users }
-
-function SectorGate({ enabledSectors, onChosen, user, onLogout }) {
-  const [isMobile, setIsMobile] = useState(false)
-  useEffect(() => {
-    const check = () => setIsMobile(window.innerWidth < 768)
-    check()
-    window.addEventListener('resize', check)
-    return () => window.removeEventListener('resize', check)
-  }, [])
-
-  const sectors = enabledSectors.map(id => SECTORS[id]).filter(Boolean)
-
-  return (
-    <div className="min-h-screen flex flex-col bg-gray-50 dark:bg-dark-950 text-gray-900 dark:text-gray-100">
-      <header className="bg-white/80 dark:bg-dark-800/80 backdrop-blur-xl border-b border-gray-200/60 dark:border-dark-700/60 px-4 py-3 flex items-center justify-between">
-        <div className="flex items-center gap-2">
-          <div className="w-8 h-8 bg-brand-500 rounded-lg flex items-center justify-center">
-            <Zap className="w-4 h-4 text-white" />
-          </div>
-          <div>
-            <div className="text-sm font-bold dark:text-white">GESTOCOM</div>
-            <div className="text-[10px] text-gold-400">CI v2.1</div>
-          </div>
-        </div>
-        <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500 dark:text-gray-400">{user?.nom}</span>
-          <button onClick={onLogout} className="p-2 rounded-xl hover:bg-red-50 dark:hover:bg-red-900/30 text-red-500 touch-target" title="Déconnexion">
-            <LogOut className="w-4 h-4" />
-          </button>
-        </div>
-      </header>
-      <main className="flex-1 flex items-center justify-center p-6">
-        <div className="max-w-md w-full text-center">
-          <div className="w-16 h-16 bg-brand-100 dark:bg-brand-900/30 rounded-2xl flex items-center justify-center mx-auto mb-6">
-            <Layers className="w-8 h-8 text-brand-500" />
-          </div>
-          <h2 className="text-2xl font-bold dark:text-white mb-2">Bienvenue !</h2>
-          <p className="text-gray-500 dark:text-gray-400 mb-8">
-            Sélectionnez votre secteur d'activité pour commencer.
-          </p>
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-            {sectors.map(s => {
-              const Icon = ICONS[s.icon] || Layers
-              return (
-                <button key={s.id} onClick={() => onChosen(s.id)}
-                  className="group flex items-center gap-3 p-4 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-700 rounded-2xl hover:border-brand-400 dark:hover:border-brand-500 hover:shadow-lg hover:shadow-brand-500/10 transition-all text-left touch-feedback active:scale-[0.97]">
-                  <div className="w-10 h-10 rounded-lg bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center">
-                    <Icon className="w-5 h-5 text-brand-500" />
-                  </div>
-                  <div>
-                    <div className="font-semibold text-sm dark:text-white group-hover:text-brand-600 dark:group-hover:text-brand-400 transition-colors">{s.nom}</div>
-                    <div className="text-[11px] text-gray-400 dark:text-gray-500">{s.description}</div>
-                  </div>
-                </button>
-              )
-            })}
-          </div>
-          <button onClick={() => onChosen('all')}
-            className="mt-6 text-sm text-gray-400 dark:text-gray-500 hover:text-brand-500 dark:hover:text-brand-400 transition-colors">
-            Passer — Voir tous les secteurs
-          </button>
-        </div>
-      </main>
-    </div>
-  )
-}
+const ICONS = { LayoutDashboard, Package, ShoppingCart, TrendingUp, Receipt, Truck, Settings, BarChart3, History, FileText, RotateCcw, ClipboardList, Landmark, Factory, Heart, GraduationCap, HandHeart, Users }
 
 const SECTOR_NAV = {
   commerce: {
@@ -118,7 +52,7 @@ const COMMERCE_TABS = [
 
 export default function Layout({ children }) {
   const { user, logout } = useAuth()
-  const { activeSector, setSector, isFiltered, sectorDef, isTopSector, enabledSectors, sectorChosen } = useSector()
+  const { activeSector, setSector, isFiltered, sectorDef, isTopSector, enabledSectors } = useSector()
   const { isMobile, isLandscape } = useDevice()
   const location = useLocation()
   const navigate = useNavigate()
@@ -128,7 +62,6 @@ export default function Layout({ children }) {
   const [updateProgress, setUpdateProgress] = useState(null)
   const [showMoreMenu, setShowMoreMenu] = useState(false)
   const [showMoreSheet, setShowMoreSheet] = useState(false)
-  const [showSectorDropdown, setShowSectorDropdown] = useState(false)
   const sheetRef = useRef(null)
   const touchStartY = useRef(0)
 
@@ -215,12 +148,6 @@ export default function Layout({ children }) {
     return COMMERCE_TABS
   }
 
-  if (!sectorChosen && enabledSectors.length > 1) {
-    return (
-      <SectorGate enabledSectors={enabledSectors} onChosen={setSector} user={user} onLogout={() => { logout(); navigate('/') }} />
-    )
-  }
-
   return (
       <div className="min-h-screen flex bg-gray-50 dark:bg-dark-950 text-gray-900 dark:text-gray-100 overflow-x-hidden max-w-full">
 
@@ -235,46 +162,6 @@ export default function Layout({ children }) {
             <div className="text-[10px] text-gold-400">CI v2.1</div>
           </div>
         </div>
-        <div className="px-3 py-2 border-b border-white/10">
-          <button onClick={() => setShowSectorDropdown(!showSectorDropdown)}
-            className="w-full flex items-center gap-2 px-3 py-2 text-xs rounded-lg bg-white/5 hover:bg-white/10 transition-colors text-left">
-            <Filter className="w-3.5 h-3.5 text-brand-400" />
-            <span className="flex-1 truncate text-gray-300">
-              {isFiltered ? (
-                isTopSector ? (
-                  <span className="inline-flex items-center gap-1">
-                    {(() => { const I = ICONS[sectorDef?.icon] || Layers; return <I className="w-3.5 h-3.5" /> })()}
-                    {sectorDef?.nom}
-                  </span>
-                ) : (
-                  <span>{sectorDef?.icon} {sectorDef?.nom}</span>
-                )
-              ) : 'Tous les secteurs'}
-            </span>
-            <ChevronDown className={`w-3 h-3 text-gray-500 transition-transform ${showSectorDropdown ? 'rotate-180' : ''}`} />
-          </button>
-          {showSectorDropdown && (
-            <div className="mt-1 bg-dark-800 border border-white/10 rounded-lg overflow-hidden max-h-60 overflow-y-auto">
-              <button onClick={() => { setSector('all'); setShowSectorDropdown(false) }}
-                className={`w-full text-left px-3 py-2 text-xs transition-colors ${
-                  !isFiltered ? 'bg-brand-500/20 text-brand-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                }`}>
-                Tous les secteurs
-              </button>
-              {Object.values(SECTORS).filter(s => enabledSectors.includes(s.id)).map(s => {
-                const SIcon = ICONS[s.icon] || Layers
-                return (
-                  <button key={s.id} onClick={() => { setSector(s.id); setShowSectorDropdown(false) }}
-                    className={`w-full text-left px-3 py-2 text-xs transition-colors flex items-center gap-2 ${
-                      activeSector === s.id ? 'bg-brand-500/20 text-brand-400' : 'text-gray-400 hover:bg-white/5 hover:text-white'
-                    }`}>
-                    <SIcon className="w-3.5 h-3.5" /> {s.nom}
-                  </button>
-                )
-              })}
-            </div>
-          )}
-        </div>
         <nav className="flex-1 py-2 overflow-y-auto">
           <Link to="/app" className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
             location.pathname === '/app' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
@@ -286,7 +173,7 @@ export default function Layout({ children }) {
           {(isFiltered ? visibleSectors.filter(s => s === activeSector) : visibleSectors).map(sectorId => {
             const nav = SECTOR_NAV[sectorId]
             if (!nav) return null
-            const Icon = ICONS[nav.icon] || Layers
+            const Icon = ICONS[nav.icon] || Package
             if (nav.sub) {
               const active = location.pathname.startsWith(nav.to)
               const isOpen = openSector === sectorId
@@ -382,20 +269,6 @@ export default function Layout({ children }) {
                 </button>
               )}
               <h1 className="text-sm font-semibold dark:text-white truncate max-w-[200px] sm:max-w-none">{getCurrentPageTitle()}</h1>
-              {isMobile && isFiltered && (
-                <button onClick={() => setSector('all')} className="ml-2 px-2 py-0.5 text-[10px] bg-brand-500/20 text-brand-400 rounded-full flex items-center gap-1 shrink-0">
-                  <Filter className="w-2.5 h-2.5" />
-                  {isTopSector ? (
-                    <>
-                      {(() => { const I = ICONS[sectorDef?.icon] || Layers; return <I className="w-2.5 h-2.5" /> })()}
-                      {sectorDef?.nom?.slice(0, 12)}
-                    </>
-                  ) : (
-                    <>{sectorDef?.icon} {sectorDef?.nom?.slice(0, 12)}</>
-                  )}
-                  <X className="w-2.5 h-2.5" />
-                </button>
-              )}
             </div>
             <div className="flex items-center gap-2">
               <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">{user?.nom}</span>
@@ -496,34 +369,6 @@ export default function Layout({ children }) {
                   </div>
                 </>
               )}
-
-              <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Secteurs</div>
-              <div className="px-4 pb-2">
-                <Link to="/app/finance" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                  <Landmark className="w-4 h-4 text-emerald-500" /> Finance & Comptabilité
-                </Link>
-                <Link to="/app/industrie" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                  <Factory className="w-4 h-4 text-slate-500" /> Industrie & Artisanat
-                </Link>
-                <Link to="/app/transport" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                  <Truck className="w-4 h-4 text-teal-500" /> Transport & Logistique
-                </Link>
-                <Link to="/app/sante" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                  <Heart className="w-4 h-4 text-rose-500" /> Santé & Pharmacies
-                </Link>
-                <Link to="/app/education" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                  <GraduationCap className="w-4 h-4 text-violet-500" /> Éducation & Formation
-                </Link>
-                <Link to="/app/ong" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                  <HandHeart className="w-4 h-4 text-amber-500" /> ONG & Associations
-                </Link>
-              </div>
 
               <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Outils</div>
               <div className="px-4 pb-2">

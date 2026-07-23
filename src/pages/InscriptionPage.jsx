@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
-import { inscrire, validatePassword, getCompanySettings, saveCompanySettings, addLog, setCurrentAdminId } from '../lib/db'
+import { inscrire, validatePassword, addLog, setCurrentAdminId } from '../lib/db'
 import { isFirebaseReady } from '../lib/firebase'
 import { pushToFirestore } from '../lib/firebaseSync'
 import { normalizePhone, isPhoneValid, formatPhoneDisplay } from '../lib/phone'
@@ -15,7 +15,7 @@ import StepIndicator from '../components/auth/StepIndicator'
 import AuthError from '../components/auth/AuthError'
 import AuthDivider from '../components/auth/AuthDivider'
 import SuccessScreen from '../components/auth/SuccessScreen'
-import { ShoppingCart, Landmark, Factory, Truck, Heart, GraduationCap, HandHeart, Check, CheckCircle, AlertTriangle, ArrowRight, Mail, RefreshCw } from 'lucide-react'
+import { ShoppingCart, Landmark, Factory, Truck, Heart, GraduationCap, HandHeart, CheckCircle, AlertTriangle, ArrowRight, Mail, RefreshCw } from 'lucide-react'
 
 const ICONS = { ShoppingCart, Landmark, Factory, Truck, Heart, GraduationCap, HandHeart }
 const COLOR_CLASSES = {
@@ -32,7 +32,7 @@ const roles = [
   { value: 'comptable', label: 'Comptable', desc: 'Rapports, dépenses' },
   { value: 'admin', label: 'Admin', desc: 'Accès total' },
 ]
-const STEP_LABELS = ['Modules', 'Compte', 'Email']
+const STEP_LABELS = ['Secteur', 'Compte', 'Email']
 
 export default function InscriptionPage() {
   const { login } = useAuth()
@@ -44,7 +44,7 @@ export default function InscriptionPage() {
   const [error, setError] = useState('')
   const [success, setSuccess] = useState(false)
   const [loading, setLoading] = useState(false)
-  const [enabledSectors, setEnabledSectors] = useState(['commerce'])
+  const [selectedSector, setSelectedSector] = useState('commerce')
   const [pendingUserId, setPendingUserId] = useState(null)
   const [otpCode, setOtpCode] = useState('')
   const [otpError, setOtpError] = useState('')
@@ -61,7 +61,7 @@ export default function InscriptionPage() {
   const isPhoneOk = form.telephone.length === 0 ? null : isPhoneValid(form.telephone)
   const pwMatch = form.confirmation.length > 0 && form.motDePasse === form.confirmation
 
-  const toggleSector = (id) => setEnabledSectors(p => p.includes(id) ? p.filter(s => s !== id) : [...p, id])
+  const selectSector = (id) => setSelectedSector(id)
 
   useEffect(() => {
     if (step !== 3) return
@@ -86,13 +86,11 @@ export default function InscriptionPage() {
 
     setLoading(true)
     try {
-      const result = await inscrire(form.nom.trim(), form.motDePasse, form.email.trim(), normalizePhone(form.telephone.trim()), form.role)
+      const result = await inscrire(form.nom.trim(), form.motDePasse, form.email.trim(), normalizePhone(form.telephone.trim()), form.role, selectedSector)
       if (result.error) { setError(result.error); return }
       if (result.user?.id) setCurrentAdminId(result.user.id)
 
-      const settings = getCompanySettings()
-      saveCompanySettings({ ...settings, enabledSectors, modulesConfigured: true })
-      addLog('Modules configurés', enabledSectors.join(', '))
+      addLog('Secteur sélectionné', selectedSector)
 
       if (isFirebaseReady() && result.user?.id) {
         pushToFirestore(form.email.trim(), result.user.id).catch(() => {})
@@ -139,31 +137,31 @@ export default function InscriptionPage() {
     <AuthLayout backTo="/">
       <StepIndicator steps={STEP_LABELS} current={step} />
 
-      {/* STEP 1: Sectors */}
+      {/* STEP 1: Sector (single-select) */}
       {step === 1 && (
         <div className="bg-white dark:bg-dark-800 rounded-2xl shadow-xl p-5 border border-gray-100 dark:border-dark-700 animate-in fade-in slide-in-from-right-4 duration-300">
-          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Sélectionnez les secteurs d'activité. Vous pouvez en choisir plusieurs.</p>
+          <p className="text-sm text-gray-500 dark:text-gray-400 mb-4">Choisissez votre secteur d'activité. Chaque compte est lié à un seul secteur.</p>
           <div className="space-y-3 mb-5">
             {Object.values(SECTORS).map(sector => {
               const Icon = ICONS[sector.icon] || ShoppingCart
-              const enabled = enabledSectors.includes(sector.id)
+              const selected = selectedSector === sector.id
               return (
-                <button key={sector.id} type="button" onClick={() => toggleSector(sector.id)}
+                <button key={sector.id} type="button" onClick={() => selectSector(sector.id)}
                   className={`w-full text-left p-4 rounded-xl border-2 transition-all duration-200 ${
-                    enabled ? `${COLOR_CLASSES[sector.color]} border-current shadow-md` : 'border-gray-200 dark:border-dark-700 hover:border-gray-300 dark:hover:border-dark-600'
+                    selected ? `${COLOR_CLASSES[sector.color]} border-current shadow-md` : 'border-gray-200 dark:border-dark-700 hover:border-gray-300 dark:hover:border-dark-600'
                   }`}>
                   <div className="flex items-center justify-between">
                     <div className="flex items-center gap-3">
-                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${enabled ? 'bg-white/80 dark:bg-white/10' : 'bg-gray-100 dark:bg-dark-700'}`}>
-                        <Icon className={`w-4 h-4 ${enabled ? 'text-current' : 'text-gray-500 dark:text-gray-400'}`} />
+                      <div className={`w-9 h-9 rounded-lg flex items-center justify-center ${selected ? 'bg-white/80 dark:bg-white/10' : 'bg-gray-100 dark:bg-dark-700'}`}>
+                        <Icon className={`w-4 h-4 ${selected ? 'text-current' : 'text-gray-500 dark:text-gray-400'}`} />
                       </div>
                       <div>
-                        <div className={`text-sm font-semibold ${enabled ? '' : 'dark:text-white'}`}>{sector.nom}</div>
-                        <div className={`text-[11px] ${enabled ? 'opacity-70' : 'text-gray-400 dark:text-gray-500'}`}>{sector.modules.length} modules</div>
+                        <div className={`text-sm font-semibold ${selected ? '' : 'dark:text-white'}`}>{sector.nom}</div>
+                        <div className={`text-[11px] ${selected ? 'opacity-70' : 'text-gray-400 dark:text-gray-500'}`}>{sector.modules.length} modules</div>
                       </div>
                     </div>
-                    <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all ${enabled ? 'bg-current' : 'bg-gray-200 dark:bg-dark-600'}`}>
-                      {enabled && <Check className="w-4 h-4 text-white" />}
+                    <div className={`w-6 h-6 rounded-full flex items-center justify-center transition-all border-2 ${selected ? 'border-current bg-current' : 'border-gray-300 dark:border-dark-600'}`}>
+                      {selected && <div className="w-2 h-2 rounded-full bg-white" />}
                     </div>
                   </div>
                 </button>
@@ -174,9 +172,9 @@ export default function InscriptionPage() {
             <Link to="/login" className="flex-1 py-2.5 px-4 border border-gray-300 dark:border-dark-600 rounded-lg text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-dark-700 text-center">
               J'ai déjà un compte
             </Link>
-            <button onClick={() => enabledSectors.length > 0 && setStep(2)} disabled={enabledSectors.length === 0}
-              className="flex-1 btn-primary py-2.5 disabled:opacity-50 flex items-center justify-center gap-2">
-              Suivant ({enabledSectors.length}) <ArrowRight className="w-4 h-4" />
+            <button onClick={() => setStep(2)}
+              className="flex-1 btn-primary py-2.5 flex items-center justify-center gap-2">
+              Suivant <ArrowRight className="w-4 h-4" />
             </button>
           </div>
         </div>

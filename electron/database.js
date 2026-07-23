@@ -38,6 +38,7 @@ function createTables() {
       role TEXT NOT NULL DEFAULT 'vendeur',
       email TEXT,
       telephone TEXT,
+      secteur TEXT DEFAULT 'commerce',
       isDefault INTEGER DEFAULT 0,
       dateCreation TEXT DEFAULT (datetime('now'))
     );
@@ -171,6 +172,7 @@ function migrateSchema() {
     { table: 'users', column: 'telephone', definition: 'TEXT' },
     { table: 'users', column: 'isDefault', definition: 'INTEGER DEFAULT 0' },
     { table: 'users', column: 'admin_id', definition: 'INTEGER' },
+    { table: 'users', column: 'secteur', definition: "TEXT DEFAULT 'commerce'" },
     { table: 'products', column: 'stockInitial', definition: 'INTEGER DEFAULT 0' },
     { table: 'products', column: 'image', definition: "TEXT DEFAULT ''" },
   ]
@@ -320,13 +322,13 @@ function isDefaultAdmin(userId) {
   return !!(u && (u.isDefault || u.nom === 'Admin'))
 }
 
-function createUser(nom, motDePasse, role, email, telephone, adminId) {
+function createUser(nom, motDePasse, role, email, telephone, adminId, secteur) {
   const salt = generateSaltSync()
   const hash = pbkdf2HashSync(motDePasse, salt)
-  const info = db.prepare('INSERT INTO users (nom, motDePasse, salt, role, email, telephone, admin_id) VALUES (?, ?, ?, ?, ?, ?, ?)').run(nom, hash, salt, role || 'vendeur', email || null, telephone || null, adminId || null)
+  const info = db.prepare('INSERT INTO users (nom, motDePasse, salt, role, email, telephone, admin_id, secteur) VALUES (?, ?, ?, ?, ?, ?, ?, ?)').run(nom, hash, salt, role || 'vendeur', email || null, telephone || null, adminId || null, secteur || 'commerce')
   const id = Number(info.lastInsertRowid)
-  addLog('Utilisateur créé', `${nom} (${role})`, id, nom)
-  return { id, nom, role: role || 'vendeur' }
+  addLog('Utilisateur créé', `${nom} (${role}, ${secteur || 'commerce'})`, id, nom)
+  return { id, nom, role: role || 'vendeur', secteur: secteur || 'commerce' }
 }
 
 function updateUserPassword(userId, newPw) {
@@ -356,7 +358,7 @@ function verifyPassword(identifier, motDePasse) {
   if (u.salt && u.motDePasse.length === 64) {
     const hash = pbkdf2HashSync(motDePasse, u.salt)
     if (hash !== u.motDePasse) return { failed: true, user: { id: u.id, nom: u.nom } }
-    return { id: u.id, nom: u.nom, role: u.role, email: u.email, telephone: u.telephone, adminId: u.admin_id || (u.role === 'admin' ? u.id : null) }
+    return { id: u.id, nom: u.nom, role: u.role, email: u.email, telephone: u.telephone, secteur: u.secteur || 'commerce', adminId: u.admin_id || (u.role === 'admin' ? u.id : null) }
   }
   return { failed: true, user: { id: u.id, nom: u.nom } }
 }

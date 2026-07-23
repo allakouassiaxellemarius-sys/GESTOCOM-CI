@@ -3,7 +3,6 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { SectorProvider } from './context/SectorContext'
 import { DeviceProvider } from './context/DeviceContext'
-import { getCompanySettings } from './lib/db'
 import ErrorBoundary from './components/ErrorBoundary'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
@@ -25,7 +24,6 @@ import LogicielsPage from './pages/LogicielsPage'
 import DownloadPage from './pages/DownloadPage'
 import RetoursPage from './pages/RetoursPage'
 import CommandesPage from './pages/CommandesPage'
-import ModuleSelectorPage from './pages/ModuleSelectorPage'
 import FinancePage from './pages/FinancePage'
 import IndustriePage from './pages/IndustriePage'
 import TransportPage from './pages/TransportPage'
@@ -39,13 +37,9 @@ import StockInventairePage from './pages/StockInventairePage'
 import SyncPage from './pages/SyncPage'
 import './index.css'
 
-function ProtectedRoute({ children, requireModules = true }) {
+function ProtectedRoute({ children }) {
   const { user } = useAuth()
   if (!user) return <Navigate to="/login" replace />
-  if (requireModules) {
-    const settings = getCompanySettings()
-    if (!settings.modulesConfigured) return <Navigate to="/app/modules" replace />
-  }
   return <Layout>{children}</Layout>
 }
 
@@ -64,7 +58,6 @@ function AppRoutes() {
       <Route path="/verify/:numero" element={<VerifyReceiptPage />} />
       <Route path="/verify" element={<VerifyReceiptPage />} />
       <Route path="/sync" element={<SyncPage />} />
-      <Route path="/app/modules" element={<ProtectedRoute requireModules={false}><ModuleSelectorPage /></ProtectedRoute>} />
 
       {/* Commerce */}
       <Route path="/app" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />

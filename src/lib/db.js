@@ -510,7 +510,7 @@ export async function ensureDefaultAdmin() {
   if (items.length === 0) {
     const salt = generateSalt()
     const hashed = await pbkdf2Hash(DEFAULT_ADMIN_CREDENTIALS.motDePasse, salt)
-    const admin = { id: 1, nom: DEFAULT_ADMIN_CREDENTIALS.nom, motDePasse: hashed, salt, role: DEFAULT_ADMIN_CREDENTIALS.role, isDefault: true, adminId: 1 }
+    const admin = { id: 1, nom: DEFAULT_ADMIN_CREDENTIALS.nom, motDePasse: hashed, salt, role: DEFAULT_ADMIN_CREDENTIALS.role, secteur: 'commerce', isDefault: true, adminId: 1 }
     setAll('users', [admin])
     addLog('Admin par défaut créé', DEFAULT_ADMIN_CREDENTIALS.nom, 1, DEFAULT_ADMIN_CREDENTIALS.nom)
     return admin
@@ -537,7 +537,7 @@ export function isEmailVerified(userId) { return _isEmailVerified(userId) }
 export function isPhoneVerified(userId) { return _isPhoneVerified(userId) }
 
 export async function addUser(nom, motDePasse, role) {
-  if (dbApi) return safeDb(() => dbApi.createUser(nom, motDePasse, role, null, null, _currentAdminId), null)
+  if (dbApi) return safeDb(() => dbApi.createUser(nom, motDePasse, role, null, null, _currentAdminId, null), null)
   const items = getAll('users')
   if (items.find(u => u.nom === nom)) return null
   const salt = generateSalt()
@@ -593,7 +593,7 @@ export async function authentifier(nom, motDePasse) {
       clearLoginAttempts()
       addLog('Connexion réussie', nom, result.id, result.nom)
       const adminId = result.role === 'admin' ? result.id : (result.adminId || null)
-      return { id: result.id, nom: result.nom, role: result.role, adminId, email: result.email, telephone: result.telephone }
+      return { id: result.id, nom: result.nom, role: result.role, adminId, email: result.email, telephone: result.telephone, secteur: result.secteur || 'commerce' }
     } catch {
       return { error: 'Erreur de connexion à la base de données' }
     }
@@ -627,7 +627,7 @@ export async function authentifier(nom, motDePasse) {
   clearLoginAttempts()
   addLog('Connexion réussie', nom, u.id, nom)
   const adminId = u.role === 'admin' ? u.id : (u.adminId || null)
-  return { id: u.id, nom: u.nom, role: u.role, adminId, email: u.email, telephone: u.telephone }
+  return { id: u.id, nom: u.nom, role: u.role, adminId, email: u.email, telephone: u.telephone, secteur: u.secteur || 'commerce' }
 }
 
 export async function changerMotDePasse(userId, ancien, nouveau) {
@@ -688,12 +688,12 @@ export async function setNewPassword(userId, newPassword) {
   return true
 }
 
-export async function inscrire(nom, motDePasse, email, telephone, role = 'vendeur') {
+export async function inscrire(nom, motDePasse, email, telephone, role = 'vendeur', secteur = 'commerce') {
   if (dbApi) {
-    try { const u = await dbApi.createUser(nom, motDePasse, role, sanitize(email), sanitize(telephone), _currentAdminId)
+    try { const u = await dbApi.createUser(nom, motDePasse, role, sanitize(email), sanitize(telephone), _currentAdminId, secteur)
       if (!u || u.__error || !u.id) { return { error: u?.message?.includes('UNIQUE') ? 'Ce nom d\'utilisateur existe déjà' : (u?.message || 'Erreur lors de la création du compte') } }
-      addLog('Inscription', `${nom} (${role})`, u.id, nom)
-      return { user: { id: u.id, nom: u.nom, role: u.role } }
+      addLog('Inscription', `${nom} (${role}, ${secteur})`, u.id, nom)
+      return { user: { id: u.id, nom: u.nom, role: u.role, secteur: u.secteur || secteur } }
     }
     catch(e) { console.error('[inscrire] createUser exception:', e); return { error: e.message?.includes('UNIQUE') ? 'Ce nom d\'utilisateur existe déjà' : (e.message || 'Erreur lors de l\'inscription') } }
   }
@@ -702,10 +702,10 @@ export async function inscrire(nom, motDePasse, email, telephone, role = 'vendeu
   if (email && items.find(u => u.email === email)) return { error: 'Cet email est déjà utilisé' }
   const salt = generateSalt()
   const hashed = await pbkdf2Hash(motDePasse, salt)
-  const u = { id: nextId(items), nom, motDePasse: hashed, salt, email: sanitize(email), telephone: sanitize(telephone), role, adminId: _currentAdminId || null, dateCreation: new Date().toISOString() }
+  const u = { id: nextId(items), nom, motDePasse: hashed, salt, email: sanitize(email), telephone: sanitize(telephone), role, secteur, adminId: _currentAdminId || null, dateCreation: new Date().toISOString() }
   items.push(u); setAll('users', items)
-  addLog('Inscription', `${nom} (${role})`, u.id, nom)
-  return { user: { id: u.id, nom: u.nom, role: u.role } }
+  addLog('Inscription', `${nom} (${role}, ${secteur})`, u.id, nom)
+  return { user: { id: u.id, nom: u.nom, role: u.role, secteur } }
 }
 
 // ── Profit ──
