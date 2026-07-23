@@ -1,23 +1,20 @@
 import { useState, useMemo } from 'react'
 import { HandHeart, FolderOpen, Users, Building, DollarSign, FileText, Plus, X, Pencil, Trash2, Download, Search } from 'lucide-react'
-const DB_PREFIX = 'gestocom_'
-function getAll(name) { try { return JSON.parse(localStorage.getItem(DB_PREFIX + name) || '[]') } catch { return [] } }
-function setAll(name, data) { localStorage.setItem(DB_PREFIX + name, JSON.stringify(data)) }
-function nextId(items) { return items.length ? Math.max(...items.map(i => i.id)) + 1 : 1 }
-function sanitize(str) { if (typeof str !== 'string') return str; return str.replace(/[<>&"']/g, c => ({ '<': '&lt;', '>': '&gt;', '&': '&amp;', '"': '&quot;', "'": '&#39;' })[c]) }
+import { getAll, setAll, nextId, sanitize } from '../lib/db'
 import { exportCSV } from '../lib/exportCSV'
 import SearchInput from '../components/SearchInput'
 import Pagination from '../components/Pagination'
 
-const ONG_STORE = 'gestocom_ong'
-
 const initialData = { projets: [], beneficiaires: [], activites: [], partenaires: [] }
 
 function loadData() {
-  try { return JSON.parse(localStorage.getItem(ONG_STORE) || JSON.stringify(initialData)) } catch { return { ...initialData } }
+  try {
+    const items = getAll('ong')
+    return items.length > 0 ? items[0] : { ...initialData }
+  } catch { return { ...initialData } }
 }
 
-function saveData(data) { localStorage.setItem(ONG_STORE, JSON.stringify(data)) }
+function saveData(data) { setAll('ong', [data]) }
 
 const tabs = [
   { key: 'projets', label: 'Projets', icon: FolderOpen },
@@ -311,10 +308,10 @@ export default function ONGPage() {
 
   const renderBudget = () => {
     const selectedProjet = projets.find(p => p.id === budgetProjetId)
-    const storedKey = `gestocom_budget_${budgetProjetId}`
+    const budgetKey = `ong_budget_${budgetProjetId || 'none'}`
     const stored = useMemo(() => {
       if (!budgetProjetId) return []
-      try { return JSON.parse(localStorage.getItem(storedKey) || '[]') } catch { return [] }
+      return getAll(budgetKey)
     }, [budgetProjetId])
 
     const postes = budgetProjetId ? stored : []
@@ -377,7 +374,7 @@ export default function ONGPage() {
                           <td className="px-4 py-3 dark:text-gray-300">{poste.realise?.toLocaleString('fr-FR')}</td>
                           <td className={`px-4 py-3 ${ecartP < 0 ? 'text-red-600 dark:text-red-400' : 'text-green-600 dark:text-green-400'}`}>{ecartP.toLocaleString('fr-FR')}</td>
                           <td className="px-4 py-3">
-                            <button onClick={() => { const newPostes = postes.filter((_, i) => i !== idx); localStorage.setItem(storedKey, JSON.stringify(newPostes)); refresh() }} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
+                            <button onClick={() => { const newPostes = postes.filter((_, i) => i !== idx); setAll(budgetKey, newPostes); refresh() }} className="p-1 rounded hover:bg-red-50 dark:hover:bg-red-900/20 text-red-500"><Trash2 className="w-3.5 h-3.5" /></button>
                           </td>
                         </tr>
                       )
@@ -404,7 +401,7 @@ export default function ONGPage() {
                 <Field label="Prévu (FCFA)"><input type="number" value={budgetNewPoste.prevu} onChange={e => setBudgetNewPoste({ ...budgetNewPoste, prevu: +e.target.value })} className="w-full px-3 py-2 border border-gray-200 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></Field>
                 <Field label="Réalisé (FCFA)"><input type="number" value={budgetNewPoste.realise} onChange={e => setBudgetNewPoste({ ...budgetNewPoste, realise: +e.target.value })} className="w-full px-3 py-2 border border-gray-200 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></Field>
               </div>
-              <button onClick={() => { if (!budgetNewPoste.poste) return; const newPostes = [...postes, { ...budgetNewPoste }]; localStorage.setItem(storedKey, JSON.stringify(newPostes)); setBudgetNewPoste({ ...emptyPoste }); refresh() }} className="btn-primary text-sm py-2 mt-4" disabled={!budgetNewPoste.poste}>Ajouter le poste</button>
+              <button onClick={() => { if (!budgetNewPoste.poste) return; const newPostes = [...postes, { ...budgetNewPoste }]; setAll(budgetKey, newPostes); setBudgetNewPoste({ ...emptyPoste }); refresh() }} className="btn-primary text-sm py-2 mt-4" disabled={!budgetNewPoste.poste}>Ajouter le poste</button>
             </div>
           </>
         )}

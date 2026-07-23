@@ -1,15 +1,9 @@
 import { useState, useMemo } from 'react'
 import { Heart, Pill, User, FileText, Receipt, BarChart3, Plus, Edit2, Trash2, X, Download, AlertTriangle, Activity } from 'lucide-react'
-import { sanitize } from '../lib/db'
+import { sanitize, getAll, setAll, nextId } from '../lib/db'
 import { exportCSV } from '../lib/exportCSV'
 import SearchInput from '../components/SearchInput'
 import Pagination from '../components/Pagination'
-
-const DB_PREFIX = 'gestocom_'
-function getKey(name) { return DB_PREFIX + name }
-function getAll(name) { try { return JSON.parse(localStorage.getItem(getKey(name)) || '[]') } catch { return [] } }
-function setAll(name, data) { localStorage.setItem(getKey(name), JSON.stringify(data)) }
-function nextId(items) { return items.length ? Math.max(...items.map(i => i.id)) + 1 : 1 }
 
 function s(str) { return sanitize(str) }
 

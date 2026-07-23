@@ -3,11 +3,12 @@ import {
   getFournisseurs, getCommandes, getRetours, getReceipts,
   getCompanySettings, getStockSettings, getVentesSettings,
   getClientsSettings, getRapportsSettings,
-  getUsersForAdmin,
+  getUsersForAdmin, getAll,
 } from './db'
 import { getProductsV2, getMouvements, getEntrepots, getLots } from './stockDb'
 import { getDocuments } from './documentsDb'
 import { getAllLogicielsData, restoreLogicielsData } from './logicielsDb'
+import { getExercices, getEcritures, getJournaux, getRapprochements, getLettrages } from './financeDb'
 
 const EXPORT_VERSION = '1.5.1'
 const EXPORT_MAGIC = 'GESTOCOM_SYNC'
@@ -32,6 +33,37 @@ export function exportAccountData(adminId) {
     stockLots: getLots(),
     kycKybDocuments: getDocuments(),
     ...getAllLogicielsData(),
+    finance: {
+      exercices: getExercices(),
+      ecritures: getEcritures(),
+      journaux: getJournaux(),
+      rapprochements: getRapprochements(),
+      lettrages: getLettrages(),
+    },
+    industrie: {
+      matieres: getAll('ind_matieres'),
+      productions: getAll('ind_productions'),
+      lots: getAll('ind_lots'),
+    },
+    transport: {
+      vehicules: getAll('tr_vehicules'),
+      chauffeurs: getAll('tr_chauffeurs'),
+      livraisons: getAll('tr_livraisons'),
+    },
+    sante: {
+      medicaments: getAll('sante_medicaments'),
+      patients: getAll('sante_patients'),
+      ordonnances: getAll('sante_ordonnances'),
+      facturations: getAll('sante_facturations'),
+    },
+    education: {
+      eleves: getAll('edu_eleves'),
+      inscriptions: getAll('edu_inscriptions'),
+      notes: getAll('edu_notes'),
+      emploi: getAll('edu_emploi'),
+      enseignants: getAll('edu_enseignants'),
+    },
+    ong: getAll('ong'),
     settings: {
       company: getCompanySettings(),
       stock: getStockSettings(),
@@ -119,6 +151,52 @@ export function importAccountData(data) {
   setTable('kyc_kyb_documents', data.kycKybDocuments || [])
   restoreLogicielsData(data)
 
+  // Finance
+  if (data.finance) {
+    setTable('comptes', data.finance.comptes || [])
+    setTable('ecritures_comptables', data.finance.ecritures || [])
+    setTable('journaux_comptes', data.finance.journaux || [])
+    setTable('exercices_comptables', data.finance.exercices || [])
+    setTable('rapprochements_bancaires', data.finance.rapprochements || [])
+    setTable('lettrages', data.finance.lettrages || [])
+  }
+
+  // Industrie
+  if (data.industrie) {
+    setTable('ind_matieres', data.industrie.matieres || [])
+    setTable('ind_productions', data.industrie.productions || [])
+    setTable('ind_lots', data.industrie.lots || [])
+  }
+
+  // Transport
+  if (data.transport) {
+    setTable('tr_vehicules', data.transport.vehicules || [])
+    setTable('tr_chauffeurs', data.transport.chauffeurs || [])
+    setTable('tr_livraisons', data.transport.livraisons || [])
+  }
+
+  // Santé
+  if (data.sante) {
+    setTable('sante_medicaments', data.sante.medicaments || [])
+    setTable('sante_patients', data.sante.patients || [])
+    setTable('sante_ordonnances', data.sante.ordonnances || [])
+    setTable('sante_facturations', data.sante.facturations || [])
+  }
+
+  // Éducation
+  if (data.education) {
+    setTable('edu_eleves', data.education.eleves || [])
+    setTable('edu_inscriptions', data.education.inscriptions || [])
+    setTable('edu_notes', data.education.notes || [])
+    setTable('edu_emploi', data.education.emploi || [])
+    setTable('edu_enseignants', data.education.enseignants || [])
+  }
+
+  // ONG
+  if (data.ong) {
+    setTable('ong', data.ong || [])
+  }
+
   // Import settings
   if (data.settings) {
     if (data.settings.company) setSetting('company', data.settings.company)
@@ -149,6 +227,42 @@ export async function syncToCloud(adminId, email) {
     commandes: getCommandes(),
     retours: getRetours(),
     receipts: getReceipts(),
+    stockMouvements: getMouvements(),
+    stockEntrepots: getEntrepots(),
+    stockLots: getLots(),
+    kycKybDocuments: getDocuments(),
+    ...getAllLogicielsData(),
+    finance: {
+      exercices: getExercices(),
+      ecritures: getEcritures(),
+      journaux: getJournaux(),
+      rapprochements: getRapprochements(),
+      lettrages: getLettrages(),
+    },
+    industrie: {
+      matieres: getAll('ind_matieres'),
+      productions: getAll('ind_productions'),
+      lots: getAll('ind_lots'),
+    },
+    transport: {
+      vehicules: getAll('tr_vehicules'),
+      chauffeurs: getAll('tr_chauffeurs'),
+      livraisons: getAll('tr_livraisons'),
+    },
+    sante: {
+      medicaments: getAll('sante_medicaments'),
+      patients: getAll('sante_patients'),
+      ordonnances: getAll('sante_ordonnances'),
+      facturations: getAll('sante_facturations'),
+    },
+    education: {
+      eleves: getAll('edu_eleves'),
+      inscriptions: getAll('edu_inscriptions'),
+      notes: getAll('edu_notes'),
+      emploi: getAll('edu_emploi'),
+      enseignants: getAll('edu_enseignants'),
+    },
+    ong: getAll('ong'),
     settings: {
       company: getCompanySettings(),
       stock: getStockSettings(),

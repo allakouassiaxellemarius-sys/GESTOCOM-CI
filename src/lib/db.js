@@ -23,7 +23,7 @@ function getKey(name) {
   return DB_PREFIX + name
 }
 
-function nextId(items) { return items.length ? Math.max(...items.map(i => i.id)) + 1 : 1 }
+export function nextId(items) { return items.length ? Math.max(...items.map(i => i.id)) + 1 : 1 }
 
 // ── Electron SQLite detection ──
 const isElectron = typeof window !== 'undefined' && window.electronAPI?.db
@@ -115,12 +115,12 @@ function jsToRow(obj) {
 let sqliteModule = null
 export function setSqliteModule(m) { sqliteModule = m }
 
-function getAll(name) {
+export function getAll(name) {
   if (sqlReady && sqlCache[name] && sqlCache[name].length > 0) return sqlCache[name]
   try { return JSON.parse(localStorage.getItem(getKey(name)) || '[]') } catch { return [] }
 }
 
-function setAll(name, data) {
+export function setAll(name, data) {
   sqlCache[name] = data
   try { localStorage.setItem(getKey(name), JSON.stringify(data)) } catch {}
   // Write-through to SQLite

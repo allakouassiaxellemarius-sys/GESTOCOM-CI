@@ -3,11 +3,7 @@ import { Plus, Edit2, Trash2, X, Download, Truck, User, MapPin, DollarSign } fro
 import SearchInput from '../components/SearchInput'
 import Pagination from '../components/Pagination'
 import { exportCSV } from '../lib/exportCSV'
-
-const DB_PREFIX = 'gestocom_'
-function getAll(name) { try { return JSON.parse(localStorage.getItem(DB_PREFIX + name) || '[]') } catch { return [] } }
-function setAll(name, data) { localStorage.setItem(DB_PREFIX + name, JSON.stringify(data)) }
-function nextId(items) { return items.length ? Math.max(...items.map(i => i.id)) + 1 : 1 }
+import { getAll, setAll, nextId } from '../lib/db'
 
 const TABS = [
   { key: 'vehicules', label: 'Véhicules', icon: Truck },
