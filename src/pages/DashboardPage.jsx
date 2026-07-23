@@ -96,8 +96,8 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ═══ ALERTES CRITIQUES ═══ */}
-      {alertes.length > 0 && (
+      {/* ═══ ALERTES CRITIQUES ═ */}
+      {alertes.length > 0 && (!isFiltered || activeSector === 'commerce') && (
         <div className="flex items-center gap-3 p-3 bg-amber-50 dark:bg-amber-900/20 border border-amber-200 dark:border-amber-800/30 rounded-xl">
           <Bell className="w-4 h-4 text-amber-600 dark:text-amber-400 flex-shrink-0" />
           <span className="text-xs text-amber-700 dark:text-amber-300 font-medium">
@@ -106,7 +106,28 @@ export default function DashboardPage() {
         </div>
       )}
 
-      {/* ═══ KPIs PRINCIPAUX ═══ */}
+      {/* ═══ SECTOR CONTENT ═══ */}
+      {isFiltered && activeSector !== 'commerce' && sectorDef && (() => {
+        const SIcon = ICONS[sectorDef.icon] || Layers
+        const sectorRoutes = { finance: '/app/finance', industrie: '/app/industrie', transport: '/app/transport', sante: '/app/sante', education: '/app/education', ong: '/app/ong' }
+        return (
+          <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700 text-center">
+            <div className="w-14 h-14 rounded-2xl bg-brand-50 dark:bg-brand-900/20 flex items-center justify-center mx-auto mb-4">
+              <SIcon className="w-7 h-7 text-brand-500" />
+            </div>
+            <h2 className="text-lg font-bold dark:text-white mb-1">{sectorDef.nom}</h2>
+            <p className="text-xs text-gray-500 dark:text-gray-400 mb-5">{sectorDef.description}</p>
+            <button onClick={() => navigate(sectorRoutes[activeSector] || '/app')}
+              className="inline-flex items-center gap-2 px-5 py-2.5 bg-brand-500 text-white rounded-xl text-sm font-semibold active:scale-[0.97] transition-transform shadow-lg shadow-brand-500/25">
+              Accéder <ArrowRight className="w-4 h-4" />
+            </button>
+          </div>
+        )
+      })()}
+
+      {/* ═══ KPIs PRINCIPAUX (commerce uniquement) ═══ */}
+      {(!isFiltered || activeSector === 'commerce') && (
+      <>
       <div className="grid grid-cols-2 gap-3">
         <div className="bg-white dark:bg-dark-800 rounded-xl p-4 border border-gray-100 dark:border-dark-700">
           <div className="flex items-center gap-2 mb-2">
@@ -232,6 +253,8 @@ export default function DashboardPage() {
             ))}
           </div>
         </div>
+      )}
+      </>
       )}
     </div>
   )

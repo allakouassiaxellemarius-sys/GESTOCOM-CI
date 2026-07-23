@@ -108,7 +108,7 @@ const SECTOR_NAV = {
   ong: { icon: 'HandHeart', label: 'ONG & Associations', to: '/app/ong' },
 }
 
-const MOBILE_TABS = [
+const COMMERCE_TABS = [
   { to: '/app', icon: 'LayoutDashboard', label: 'Accueil' },
   { to: '/app/ventes', icon: 'ShoppingCart', label: 'Ventes' },
   { to: '/app/stock', icon: 'Package', label: 'Stock' },
@@ -194,10 +194,25 @@ export default function Layout({ children }) {
 
   const getActiveTab = () => {
     if (location.pathname === '/app') return '/app'
-    if (location.pathname.startsWith('/app/ventes') || location.pathname.startsWith('/app/finance') || location.pathname.startsWith('/app/industrie') || location.pathname.startsWith('/app/transport') || location.pathname.startsWith('/app/sante') || location.pathname.startsWith('/app/education') || location.pathname.startsWith('/app/ong')) return '/app/ventes'
+    if (location.pathname.startsWith('/app/ventes')) return '/app/ventes'
     if (location.pathname.startsWith('/app/stock') || location.pathname.startsWith('/app/fournisseurs') || location.pathname.startsWith('/app/retours') || location.pathname.startsWith('/app/profit')) return '/app/stock'
     if (location.pathname.startsWith('/app/depenses')) return '/app/depenses'
+    if (location.pathname.startsWith('/app/finance') || location.pathname.startsWith('/app/industrie') || location.pathname.startsWith('/app/transport') || location.pathname.startsWith('/app/sante') || location.pathname.startsWith('/app/education') || location.pathname.startsWith('/app/ong')) return '__sector'
     return '__more'
+  }
+
+  const getMobileTabs = () => {
+    if (isFiltered && activeSector !== 'commerce') {
+      const nav = SECTOR_NAV[activeSector]
+      if (nav) {
+        return [
+          { to: '/app', icon: 'LayoutDashboard', label: 'Accueil' },
+          { to: nav.to, icon: nav.icon, label: nav.label.split(' ')[0] },
+          { to: '__more', icon: 'MoreHorizontal', label: 'Plus' },
+        ]
+      }
+    }
+    return COMMERCE_TABS
   }
 
   if (!sectorChosen && enabledSectors.length > 1) {
@@ -268,7 +283,7 @@ export default function Layout({ children }) {
           </Link>
 
           <div className="px-4 pt-3 pb-1 text-[10px] font-semibold text-gray-500 uppercase tracking-wider">Opérations</div>
-          {visibleSectors.map(sectorId => {
+          {(isFiltered ? visibleSectors.filter(s => s === activeSector) : visibleSectors).map(sectorId => {
             const nav = SECTOR_NAV[sectorId]
             if (!nav) return null
             const Icon = ICONS[nav.icon] || Layers
@@ -412,7 +427,7 @@ export default function Layout({ children }) {
       {isMobile && (
         <nav className="layout-nav fixed bottom-0 left-0 right-0 z-30 bg-white/90 dark:bg-dark-800/90 backdrop-blur-xl border-t border-gray-200/60 dark:border-dark-700/60 safe-area-bottom" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
           <div className="flex items-center justify-around h-14">
-            {MOBILE_TABS.map(item => {
+            {getMobileTabs().map(item => {
               if (item.to === '__more') {
                 return (
                   <button key="more" onClick={() => { setShowMoreSheet(!showMoreSheet); setShowSectors(false) }}
@@ -450,33 +465,37 @@ export default function Layout({ children }) {
               <h3 className="text-base font-bold dark:text-white">Plus</h3>
             </div>
             <div className="overflow-y-auto max-h-[65vh] pb-4">
-              <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Navigation</div>
-              <div className="px-4 pb-2 grid grid-cols-2 gap-2">
-                <Link to="/app/ventes/historique" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                  <History className="w-4 h-4 text-gray-500" /> Historique
-                </Link>
-                <Link to="/app/ventes/recus" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                  <FileText className="w-4 h-4 text-gray-500" /> Reçus
-                </Link>
-                <Link to="/app/ventes/rapports" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                  <BarChart3 className="w-4 h-4 text-gray-500" /> Rapports
-                </Link>
-                <Link to="/app/profit" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                  <TrendingUp className="w-4 h-4 text-gray-500" /> Profit
-                </Link>
-                <Link to="/app/fournisseurs" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                  <Truck className="w-4 h-4 text-gray-500" /> Fournisseurs
-                </Link>
-                <Link to="/app/retours" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                  <RotateCcw className="w-4 h-4 text-gray-500" /> Retours
-                </Link>
-              </div>
+              {(!isFiltered || activeSector === 'commerce') && (
+                <>
+                  <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Navigation</div>
+                  <div className="px-4 pb-2 grid grid-cols-2 gap-2">
+                    <Link to="/app/ventes/historique" onClick={() => setShowMoreSheet(false)}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                      <History className="w-4 h-4 text-gray-500" /> Historique
+                    </Link>
+                    <Link to="/app/ventes/recus" onClick={() => setShowMoreSheet(false)}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                      <FileText className="w-4 h-4 text-gray-500" /> Reçus
+                    </Link>
+                    <Link to="/app/ventes/rapports" onClick={() => setShowMoreSheet(false)}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                      <BarChart3 className="w-4 h-4 text-gray-500" /> Rapports
+                    </Link>
+                    <Link to="/app/profit" onClick={() => setShowMoreSheet(false)}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                      <TrendingUp className="w-4 h-4 text-gray-500" /> Profit
+                    </Link>
+                    <Link to="/app/fournisseurs" onClick={() => setShowMoreSheet(false)}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                      <Truck className="w-4 h-4 text-gray-500" /> Fournisseurs
+                    </Link>
+                    <Link to="/app/retours" onClick={() => setShowMoreSheet(false)}
+                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
+                      <RotateCcw className="w-4 h-4 text-gray-500" /> Retours
+                    </Link>
+                  </div>
+                </>
+              )}
 
               <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Secteurs</div>
               <div className="px-4 pb-2">
