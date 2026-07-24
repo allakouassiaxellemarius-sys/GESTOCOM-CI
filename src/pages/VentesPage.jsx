@@ -1,6 +1,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { getProducts, vendre, getProductByBarcode, getProductsEnAlerte, getVentesSettings } from '../lib/db'
+import { vendre, getProductByBarcode, getVentesSettings } from '../lib/db'
+import { getProductsV2, getProductsCompat } from '../lib/stockDb'
 import { normalizePhone } from '../lib/phone'
 import { useAuth } from '../context/AuthContext'
 import { useSector } from '../context/SectorContext'
@@ -26,7 +27,7 @@ export default function VentesPage() {
   const { user } = useAuth()
   const { isFiltered, sectorProductNames, sectorProductIds } = useSector()
   const { isMobile, isTouch } = useDevice()
-  const [allProducts, setAllProducts] = useState(getProducts)
+  const [allProducts, setAllProducts] = useState(getProductsCompat)
   const products = useMemo(() => {
     if (!isFiltered) return allProducts
     return allProducts.filter(p => sectorProductIds.has(p.id) || sectorProductNames.has(p.nom))
@@ -61,7 +62,7 @@ export default function VentesPage() {
   const [montantRecu, setMontantRecu] = useState('')
   const [notes, setNotes] = useState('')
 
-  const refresh = () => setAllProducts(getProducts())
+  const refresh = () => setAllProducts(getProductsCompat())
 
   const handleScan = (code) => {
     const p = getProductByBarcode(code)

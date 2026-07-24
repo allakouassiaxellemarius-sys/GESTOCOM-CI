@@ -4,6 +4,7 @@ import { is2FAEnabled, verify2FACode } from '../lib/tfa'
 import { envoyerEmailOTP, envoyerSMSOTP, verifierOTP as verifyOTPLib, getOTPChannel as getOTPChannelLib, isOTPEnabled, renvoyerOTP } from '../lib/verification'
 import { isFirebaseReady } from '../lib/firebase'
 import { pullFromFirestore, restoreDataFromCloud, pushToFirestore } from '../lib/firebaseSync'
+import { useSync } from './SyncContext'
 
 const AuthContext = createContext(null)
 const TIMEOUT_MS = 30 * 60 * 1000 // 30 minutes
@@ -43,6 +44,7 @@ export function AuthProvider({ children }) {
   const [pending2FA, setPending2FA] = useState(null)
   const [pendingOTP, setPendingOTP] = useState(null) // { id, nom, role, channel }
   const [otpChannel, setOtpChannel] = useState(null) // 'sms' | 'email'
+  const syncCtx = useSync()
 
   useEffect(() => {
     ensureDefaultAdmin()
@@ -74,15 +76,10 @@ export function AuthProvider({ children }) {
       }
     }, 60000)
 
-    // Auto-sync to cloud every 5 minutes
-    const syncInterval = setInterval(() => {
-      autoSyncToCloud(user)
-    }, 5 * 60 * 1000)
-
     return () => {
       events.forEach(e => document.removeEventListener(e, resetActivity))
       clearInterval(interval)
-      clearInterval(syncInterval)
+
     }
   }, [user, lastActivity, resetActivity])
 
@@ -117,8 +114,8 @@ export function AuthProvider({ children }) {
       setCurrentAdminId(result.adminId)
       sessionStorage.setItem('gestocom_session', JSON.stringify(result))
       setLastActivity(Date.now())
-      autoSyncFromCloud(result)
-      autoSyncToCloud(result)
+      syncCtx.setSyncUser(result)
+      syncCtx.fullSync(result)
       return true
     }
     return false
@@ -151,7 +148,8 @@ export function AuthProvider({ children }) {
       setLastActivity(Date.now())
       setPending2FA(null)
       addLog('Connexion 2FA réussie', '', pending2FA.id, pending2FA.nom)
-      autoSyncFromCloud(pending2FA)
+      syncCtx.setSyncUser(pending2FA)
+      syncCtx.pullSync(pending2FA)
       return true
     }
     addLog('Échec 2FA', '', pending2FA.id, pending2FA.nom)
@@ -170,7 +168,8 @@ export function AuthProvider({ children }) {
       setPendingOTP(null)
       setOtpChannel(null)
       addLog('Connexion OTP réussie', '', pendingOTP.id, pendingOTP.nom)
-      autoSyncFromCloud(pendingOTP)
+      syncCtx.setSyncUser(pendingOTP)
+      syncCtx.pullSync(pendingOTP)
       return true
     }
     addLog('Échec OTP', result?.error || '', pendingOTP.id, pendingOTP.nom)

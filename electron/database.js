@@ -59,6 +59,34 @@ function createTables() {
       dateCreation TEXT DEFAULT (datetime('now'))
     );
 
+    CREATE TABLE IF NOT EXISTS products_v2 (
+      id INTEGER PRIMARY KEY AUTOINCREMENT,
+      reference TEXT,
+      nom TEXT NOT NULL,
+      description TEXT DEFAULT '',
+      secteur TEXT DEFAULT 'detail',
+      categorie TEXT DEFAULT '',
+      barcode TEXT,
+      unite TEXT DEFAULT 'piece',
+      prix_achat REAL DEFAULT 0,
+      prix_vente REAL DEFAULT 0,
+      marge_minimum REAL DEFAULT 10,
+      stock_actuel INTEGER DEFAULT 0,
+      stock_minimal INTEGER DEFAULT 0,
+      stock_maximal INTEGER DEFAULT 99999,
+      seuil_alerte INTEGER DEFAULT 5,
+      emplacement TEXT DEFAULT '',
+      entrepot TEXT DEFAULT 'Principal',
+      image TEXT DEFAULT '',
+      specifications TEXT DEFAULT '{}',
+      variants TEXT DEFAULT '[]',
+      serial_numbers TEXT DEFAULT '[]',
+      recettes TEXT DEFAULT '[]',
+      actif INTEGER DEFAULT 1,
+      date_creation TEXT DEFAULT (datetime('now')),
+      date_modification TEXT DEFAULT (datetime('now'))
+    );
+
     CREATE TABLE IF NOT EXISTS ventes (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       produitId INTEGER,
@@ -197,6 +225,10 @@ function createIndexes() {
     'CREATE INDEX IF NOT EXISTS idx_products_barcode ON products(barcode)',
     'CREATE INDEX IF NOT EXISTS idx_products_type ON products(type)',
     'CREATE INDEX IF NOT EXISTS idx_products_stock ON products(stockActuel, seuilAlerte)',
+    'CREATE INDEX IF NOT EXISTS idx_products_v2_barcode ON products_v2(barcode)',
+    'CREATE INDEX IF NOT EXISTS idx_products_v2_secteur ON products_v2(secteur)',
+    'CREATE INDEX IF NOT EXISTS idx_products_v2_stock ON products_v2(stock_actuel, seuil_alerte)',
+    'CREATE INDEX IF NOT EXISTS idx_products_v2_actif ON products_v2(actif)',
     'CREATE INDEX IF NOT EXISTS idx_ventes_date ON ventes(dateVente)',
     'CREATE INDEX IF NOT EXISTS idx_ventes_produit ON ventes(produitId)',
     'CREATE INDEX IF NOT EXISTS idx_ventes_caissier ON ventes(caissier)',
@@ -434,6 +466,79 @@ function getProductsByType(type) {
 
 function searchProducts(query) {
   return db.prepare('SELECT * FROM products WHERE nom LIKE ? OR barcode LIKE ?').all(`%${query}%`, `%${query}%`)
+}
+
+// ═══════════════════════════════════════════════════════
+// PRODUCTS V2
+// ═══════════════════════════════════════════════════════
+
+function getProductsV2() {
+  return db.prepare('SELECT * FROM products_v2 WHERE actif = 1').all()
+}
+
+function getProductV2ById(id) {
+  return db.prepare('SELECT * FROM products_v2 WHERE id = ?').get(id)
+}
+
+function getProductV2ByBarcode(barcode) {
+  return db.prepare('SELECT * FROM products_v2 WHERE barcode = ?').get(barcode)
+}
+
+function createProductV2(p) {
+  const info = db.prepare(`INSERT INTO products_v2 (reference, nom, description, secteur, categorie, barcode, unite, prix_achat, prix_vente, marge_minimum, stock_actuel, stock_minimal, stock_maximal, seuil_alerte, emplacement, entrepot, image, specifications, variants, serial_numbers, recettes, actif, date_creation, date_modification) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, datetime('now'), datetime('now'))`).run(
+    p.reference || null, p.nom || '', p.description || '', p.secteur || 'detail', p.categorie || '',
+    p.barcode || null, p.unite || 'piece', p.prixAchat || 0, p.prixVente || 0, p.margeMinimum || 10,
+    p.stockActuel || 0, p.stockMinimal || 0, p.stockMaximal || 99999, p.seuilAlerte || 5,
+    p.emplacement || '', p.entrepot || 'Principal', p.image || '',
+    JSON.stringify(p.specifications || {}), JSON.stringify(p.variants || []),
+    JSON.stringify(p.serialNumbers || []), JSON.stringify(p.recettes || []),
+    p.actif !== false ? 1 : 0
+  )
+  const id = Number(info.lastInsertRowid)
+  addLog('Produit V2 ajouté', `${p.nom}`, id)
+  return { id, ...p }
+}
+
+function updateProductV2(p) {
+  const old = getProductV2ById(p.id)
+  db.prepare(`UPDATE products_v2 SET reference=?, nom=?, description=?, secteur=?, categorie=?, barcode=?, unite=?, prix_achat=?, prix_vente=?, marge_minimum=?, stock_actuel=?, stock_minimal=?, stock_maximal=?, seuil_alerte=?, emplacement=?, entrepot=?, image=?, specifications=?, variants=?, serial_numbers=?, recettes=?, actif=?, date_modification=datetime('now') WHERE id=?`).run(
+    p.reference, p.nom, p.description || '', p.secteur || 'detail', p.categorie || '',
+    p.barcode, p.unite || 'piece', p.prixAchat || 0, p.prixVente || 0, p.margeMinimum || 10,
+    p.stockActuel ?? (old ? old.stockActuel : 0), p.stockMinimal || 0, p.stockMaximal || 99999, p.seuilAlerte || 5,
+    p.emplacement || '', p.entrepot || 'Principal', p.image || '',
+    typeof p.specifications === 'string' ? p.specifications : JSON.stringify(p.specifications || {}),
+    typeof p.variants === 'string' ? p.variants : JSON.stringify(p.variants || []),
+    typeof p.serialNumbers === 'string' ? p.serialNumbers : JSON.stringify(p.serialNumbers || []),
+    typeof p.recettes === 'string' ? p.recettes : JSON.stringify(p.recettes || []),
+    p.actif !== false ? 1 : 0, p.id
+  )
+  addLog('Produit V2 modifié', `${p.nom}`, p.id)
+}
+
+function deleteProductV2(id) {
+  const p = getProductV2ById(id)
+  db.prepare('UPDATE products_v2 SET actif = 0, date_modification = datetime(\'now\') WHERE id = ?').run(id)
+  addLog('Produit V2 supprimé', p?.nom || String(id), id)
+}
+
+function searchProductsV2(query) {
+  return db.prepare('SELECT * FROM products_v2 WHERE actif = 1 AND (nom LIKE ? OR reference LIKE ? OR barcode LIKE ? OR categorie LIKE ?)').all(`%${query}%`, `%${query}%`, `%${query}%`, `%${query}%`)
+}
+
+function getProductsV2BySecteur(secteur) {
+  return db.prepare('SELECT * FROM products_v2 WHERE secteur = ? AND actif = 1').all(secteur)
+}
+
+function getProductsV2Count() {
+  return db.prepare('SELECT COUNT(*) as c FROM products_v2 WHERE actif = 1').get().c
+}
+
+function getProductsV2EnAlerte() {
+  return db.prepare('SELECT * FROM products_v2 WHERE actif = 1 AND stock_actuel <= seuil_alerte').all()
+}
+
+function updateProductV2Stock(id, delta) {
+  db.prepare('UPDATE products_v2 SET stock_actuel = stock_actuel + ?, date_modification = datetime(\'now\') WHERE id = ?').run(delta, id)
 }
 
 // ═══════════════════════════════════════════════════════
@@ -986,6 +1091,11 @@ module.exports = {
   getProducts, getProductById, getProductByBarcode,
   createProduct, updateProduct, deleteProduct, approvisionner,
   getProductsEnAlerte, getProductsCount, getProductsByType, searchProducts,
+
+  // Products V2
+  getProductsV2, getProductV2ById, getProductV2ByBarcode,
+  createProductV2, updateProductV2, deleteProductV2,
+  searchProductsV2, getProductsV2BySecteur, getProductsV2Count, getProductsV2EnAlerte, updateProductV2Stock,
 
   // Ventes
   getVentes, getVenteById, getVentesByDate, getVentesByProduct, getVentesByCaissier,

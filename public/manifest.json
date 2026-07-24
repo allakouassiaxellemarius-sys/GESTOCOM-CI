@@ -1,7 +1,7 @@
 {
   "name": "GESTOCOM CI — Gestion Commerciale Professionnelle",
   "short_name": "GESTOCOM CI",
-  "description": "Logiciel de gestion commerciale conçu pour les PME ivoiriennes. Données 100% locales, fonctionne hors ligne.",
+  "description": "Logiciel de gestion commerciale conçu pour les PME ivoiriennes. Synchronisation cloud, fonctionne hors ligne.",
   "start_url": "/#/app",
   "scope": "/",
   "display": "standalone",
@@ -9,7 +9,7 @@
   "background_color": "#FF8C00",
   "theme_color": "#FF8C00",
   "orientation": "any",
-  "categories": ["business", "finance"],
+  "categories": ["business", "finance", "productivity"],
   "lang": "fr",
   "dir": "ltr",
   "iarc_rating_id": "",

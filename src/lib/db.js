@@ -363,6 +363,96 @@ export function getProductsEnAlerte() {
   return getProducts().filter(p => p.stockActuel <= p.seuilAlerte)
 }
 
+// ── Produits V2 ──
+export function getProductsV2() {
+  if (dbApi) {
+    try { const r = dbApi.getProductsV2(); if (r && r.__error) return []; return r || [] }
+    catch { return [] }
+  }
+  return getAll('products_v2')
+}
+
+export function getProductV2(id) {
+  if (dbApi) return safeDb(() => dbApi.getProductV2ById(id), null)
+  return getAll('products_v2').find(p => p.id === id) || null
+}
+
+export function getProductV2ByBarcode(barcode) {
+  if (dbApi) return safeDb(() => dbApi.getProductV2ByBarcode(barcode), null)
+  return getAll('products_v2').find(p => p.barcode === barcode) || null
+}
+
+export function addProductV2(p) {
+  if (dbApi) { return safeDb(() => dbApi.createProductV2(sanitizeObj(p)), null) }
+  const items = getAll('products_v2')
+  p.id = nextId(items)
+  p.dateCreation = p.dateCreation || new Date().toISOString()
+  p.dateModification = new Date().toISOString()
+  items.push(sanitizeObj(p))
+  setAll('products_v2', items)
+  addLog('Produit V2 ajouté', `${p.nom}`, p.id)
+  return p
+}
+
+export function updateProductV2(p) {
+  if (dbApi) { safeDb(() => dbApi.updateProductV2(sanitizeObj(p))); return }
+  const items = getAll('products_v2')
+  const idx = items.findIndex(i => i.id === p.id)
+  if (idx !== -1) {
+    items[idx] = { ...items[idx], ...sanitizeObj(p), dateModification: new Date().toISOString() }
+  }
+  setAll('products_v2', items)
+  addLog('Produit V2 modifié', `${p.nom}`, p.id)
+}
+
+export function deleteProductV2(id) {
+  if (dbApi) { safeDb(() => dbApi.deleteProductV2(id)); return }
+  const p = getProductV2(id)
+  const items = getAll('products_v2')
+  const idx = items.findIndex(i => i.id === id)
+  if (idx !== -1) {
+    items[idx].actif = false
+    items[idx].dateModification = new Date().toISOString()
+  }
+  setAll('products_v2', items)
+  addLog('Produit V2 supprimé', `${p?.nom || id}`, id)
+}
+
+export function searchProductsV2(query) {
+  if (dbApi) {
+    try { const r = dbApi.searchProductsV2(query); if (r && r.__error) return []; return r || [] }
+    catch { return [] }
+  }
+  const q = query.toLowerCase()
+  return getAll('products_v2').filter(p =>
+    p.actif !== false && (
+      (p.nom || '').toLowerCase().includes(q) ||
+      (p.reference || '').toLowerCase().includes(q) ||
+      (p.barcode || '').toLowerCase().includes(q) ||
+      (p.categorie || '').toLowerCase().includes(q)
+    )
+  )
+}
+
+export function getProductsV2BySecteur(secteur) {
+  if (dbApi) {
+    try { const r = dbApi.getProductsV2BySecteur(secteur); if (r && r.__error) return []; return r || [] }
+    catch { return [] }
+  }
+  return getAll('products_v2').filter(p => p.secteur === secteur && p.actif !== false)
+}
+
+export function updateProductV2Stock(id, delta) {
+  if (dbApi) { safeDb(() => dbApi.updateProductV2Stock(id, delta)); return }
+  const items = getAll('products_v2')
+  const idx = items.findIndex(i => i.id === id)
+  if (idx !== -1) {
+    items[idx].stockActuel = (items[idx].stockActuel || 0) + delta
+    items[idx].dateModification = new Date().toISOString()
+  }
+  setAll('products_v2', items)
+}
+
 // ── Ventes ──
 export function getVentes() {
   if (dbApi) return safeDb(() => dbApi.getVentes(), [])

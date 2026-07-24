@@ -15,6 +15,7 @@ import {
   ShieldCheck, Monitor,
 } from 'lucide-react'
 import { getProductsEnAlerte } from '../lib/db'
+import SyncStatusBar from './SyncStatusBar'
 
 const ICONS = { LayoutDashboard, Package, ShoppingCart, TrendingUp, Receipt, Truck, Settings, BarChart3, History, FileText, RotateCcw, ClipboardList, Landmark, Factory, Heart, GraduationCap, HandHeart, Users }
 
@@ -271,6 +272,7 @@ export default function Layout({ children }) {
               <h1 className="text-sm font-semibold dark:text-white truncate max-w-[200px] sm:max-w-none">{getCurrentPageTitle()}</h1>
             </div>
             <div className="flex items-center gap-2">
+              <SyncStatusBar />
               <span className="text-xs text-gray-500 dark:text-gray-400 hidden sm:inline">{user?.nom}</span>
               {!isMobile && (
                 <button onClick={() => { logout(); navigate('/') }}

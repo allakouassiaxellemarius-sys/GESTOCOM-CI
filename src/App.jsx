@@ -3,6 +3,8 @@ import { AuthProvider, useAuth } from './context/AuthContext'
 import { ThemeProvider } from './context/ThemeContext'
 import { SectorProvider } from './context/SectorContext'
 import { DeviceProvider } from './context/DeviceContext'
+import { NetworkProvider } from './context/NetworkContext'
+import { SyncProvider } from './context/SyncContext'
 import ErrorBoundary from './components/ErrorBoundary'
 import LandingPage from './pages/LandingPage'
 import LoginPage from './pages/LoginPage'
@@ -104,17 +106,21 @@ function AppRoutes() {
 export default function App() {
   return (
     <HashRouter>
-      <AuthProvider>
-        <ThemeProvider>
-          <SectorProvider>
-            <DeviceProvider>
-              <ErrorBoundary>
-                <AppRoutes />
-              </ErrorBoundary>
-            </DeviceProvider>
-          </SectorProvider>
-        </ThemeProvider>
-      </AuthProvider>
+      <NetworkProvider>
+        <SyncProvider>
+          <AuthProvider>
+            <ThemeProvider>
+              <SectorProvider>
+                <DeviceProvider>
+                  <ErrorBoundary>
+                    <AppRoutes />
+                  </ErrorBoundary>
+                </DeviceProvider>
+              </SectorProvider>
+            </ThemeProvider>
+          </AuthProvider>
+        </SyncProvider>
+      </NetworkProvider>
     </HashRouter>
   )
 }

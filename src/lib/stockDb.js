@@ -1,4 +1,10 @@
-import { addLog, getStockSettings, isSqliteReady, getSqlCache } from './db'
+import { addLog, getStockSettings, isSqliteReady, getSqlCache,
+  getProductsV2 as dbGetProductsV2,
+  addProductV2 as dbAddProductV2,
+  updateProductV2 as dbUpdateProductV2,
+  deleteProductV2 as dbDeleteProductV2,
+  searchProductsV2 as dbSearchProductsV2,
+} from './db'
 
 const DB_PREFIX = 'gestocom_'
 function getAll(name) {
@@ -193,7 +199,11 @@ export const SECTOR_FIELDS = {
 // ══════════════════════════════════════════════════════════════
 // PRODUITS V2 — SCHÉMA UNIVERSEL AVEC CHAMPS SECTORIELS
 // ══════════════════════════════════════════════════════════════
-export function getProductsV2() { return getAll('products_v2') }
+export function getProductsV2() {
+  const dbProducts = dbGetProductsV2()
+  if (dbProducts && dbProducts.length > 0) return dbProducts
+  return getAll('products_v2')
+}
 export function getProductV2(id) { return getAll('products_v2').find(p => p.id === id) || null }
 
 export function duplicateProductV2(id) {
@@ -250,6 +260,7 @@ export function addProductV2(p) {
   }
   items.push(product)
   setAll('products_v2', items)
+  dbAddProductV2(product)
   addLog('Produit créé', `${product.nom} (${product.reference || product.barcode || product.id})`, product.id)
   return product
 }
@@ -260,6 +271,7 @@ export function updateProductV2(p) {
   if (idx === -1) return null
   items[idx] = { ...items[idx], ...p, dateModification: new Date().toISOString() }
   setAll('products_v2', items)
+  dbUpdateProductV2(items[idx])
   addLog('Produit modifié', `${p.nom || items[idx].nom}`, p.id)
   return items[idx]
 }
@@ -267,6 +279,7 @@ export function updateProductV2(p) {
 export function deleteProductV2(id) {
   const p = getProductV2(id)
   setAll('products_v2', getAll('products_v2').filter(i => i.id !== id))
+  dbDeleteProductV2(id)
   if (p) addLog('Produit supprimé', `${p.nom}`, id)
 }
 
@@ -275,6 +288,8 @@ export function getProductsBySecteur(secteur) {
 }
 
 export function searchProductsV2(query) {
+  const dbResults = dbSearchProductsV2(query)
+  if (dbResults && dbResults.length > 0) return dbResults
   const q = query.toLowerCase()
   return getAll('products_v2').filter(p =>
     p.actif && (

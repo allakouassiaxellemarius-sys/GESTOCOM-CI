@@ -36,3 +36,14 @@ if ('serviceWorker' in navigator) {
     }
   } catch {}
 })()
+
+// Auto-migrate V1 → V2 products if needed
+setTimeout(async () => {
+  try {
+    const { getProductsV2: _gpv2, migrateFromV1 } = await import('./lib/stockDb')
+    if (_gpv2().length === 0) {
+      const migrated = migrateFromV1()
+      if (migrated > 0) console.log(`[Auto-migration] ${migrated} produits V1 migrés vers V2`)
+    }
+  } catch {}
+}, 2000)

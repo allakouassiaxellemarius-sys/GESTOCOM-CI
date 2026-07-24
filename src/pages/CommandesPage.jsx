@@ -1,5 +1,6 @@
 import { useState, useMemo, useEffect } from 'react'
-import { getCommandes, addCommande, updateCommande, deleteCommande, recevoirCommande, getProducts, getFournisseurs } from '../lib/db'
+import { getCommandes, addCommande, updateCommande, deleteCommande, recevoirCommande, getFournisseurs } from '../lib/db'
+import { getProductsV2, getProductsCompat } from '../lib/stockDb'
 import { useSector } from '../context/SectorContext'
 import { ClipboardList, Plus, Trash2, X, Download, CheckCircle, Package } from 'lucide-react'
 import SearchInput from '../components/SearchInput'
@@ -23,7 +24,7 @@ export default function CommandesPage() {
     if (!isFiltered) return allCommandes
     return allCommandes.filter(c => sectorProductIds.has(c.produitId) || sectorProductNames.has(c.produitNom))
   }, [allCommandes, isFiltered, sectorProductIds, sectorProductNames])
-  const [products, setProducts] = useState(getProducts)
+  const [products, setProducts] = useState(getProductsCompat)
   const [fournisseurs, setFournisseurs] = useState(getFournisseurs)
   const [form, setForm] = useState(null)
   const [search, setSearch] = useState('')
@@ -31,7 +32,7 @@ export default function CommandesPage() {
   const [page, setPage] = useState(1)
   const perPage = 25
   const { sortField, sortDir, handleSort, sortData } = useSort('dateCommande', 'desc')
-  const refresh = () => { setAllCommandes(getCommandes()); setProducts(getProducts()); setFournisseurs(getFournisseurs()) }
+  const refresh = () => { setAllCommandes(getCommandes()); setProducts(getProductsCompat()); setFournisseurs(getFournisseurs()) }
 
   useEffect(() => setPage(1), [search, filterStatut])
 
