@@ -63,7 +63,7 @@ function generateOTPCode() {
   return String(Math.floor(100000 + Math.random() * 900000))
 }
 
-// Envoyer un OTP par email (simulé — affiché dans la console pour dev)
+// Envoyer un OTP par email (via Vercel serverless + Gmail SMTP)
 export async function envoyerEmailOTP(userId, email) {
   const code = generateOTPCode()
   const all = getAllOTP()
@@ -71,16 +71,32 @@ export async function envoyerEmailOTP(userId, email) {
   all[`email_${userId}`] = {
     code,
     email,
-    expiresAt: Date.now() + 10 * 60 * 1000, // 10 minutes
+    expiresAt: Date.now() + 10 * 60 * 1000,
     attempts: 0,
     createdAt: new Date().toISOString(),
   }
   
   saveAllOTP(all)
   
-  return {
-    success: true,
-    message: `Code de vérification envoyé à ${email}`,
+  try {
+    const res = await fetch('/api/send-otp', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        email,
+        code,
+        subject: 'Code de vérification GESTOCOM CI',
+      }),
+    })
+    
+    if (!res.ok) {
+      const data = await res.json().catch(() => ({}))
+      return { success: false, message: data.error || "Échec de l'envoi de l'email" }
+    }
+    
+    return { success: true, message: `Code de vérification envoyé à ${email}` }
+  } catch {
+    return { success: false, message: "Erreur réseau. Vérifiez votre connexion." }
   }
 }
 
