@@ -27,17 +27,42 @@ import {
   FileText, Download, Upload, RefreshCw, Percent,
   UserPlus, Settings, Volume2, VolumeX,
   Bell, Smartphone, Key, ShieldCheck, MessageSquare, Layers,
+  Landmark, Factory, Truck, Stethoscope, GraduationCap, Handshake, Wrench, Clock, Target, BookOpen, Wallet, UsersRound, StickyNote, ClipboardList,
 } from 'lucide-react'
 
-const CATEGORIES = [
+const SECTOR_CATEGORIES = {
+  commerce: [
+    { key: 'produits', label: 'Produits & stock', icon: Package },
+    { key: 'ventes', label: 'Ventes & paiements', icon: ShoppingCart },
+    { key: 'clients', label: 'Clients & fidélité', icon: Heart },
+  ],
+  finance: [
+    { key: 'finance', label: 'Comptabilité', icon: Landmark },
+  ],
+  industrie: [
+    { key: 'production', label: 'Production', icon: Factory },
+  ],
+  transport: [
+    { key: 'transport', label: 'Transport & logistique', icon: Truck },
+  ],
+  sante: [
+    { key: 'sante', label: 'Santé & Pharmacie', icon: Stethoscope },
+  ],
+  education: [
+    { key: 'education', label: 'Éducation', icon: GraduationCap },
+  ],
+  ong: [
+    { key: 'ong', label: 'ONG & Projets', icon: Handshake },
+  ],
+}
+
+const UNIVERSAL_CATEGORIES = [
   { key: 'general', label: 'Général', icon: Building2 },
   { key: 'utilisateurs', label: 'Utilisateurs & rôles', icon: Users },
-  { key: 'produits', label: 'Produits & stock', icon: Package },
-  { key: 'ventes', label: 'Ventes & paiements', icon: ShoppingCart },
-  { key: 'clients', label: 'Clients & fidélité', icon: Heart },
   { key: 'rapports', label: 'Rapports & export', icon: BarChart3 },
   { key: 'securite', label: 'Sécurité & sauvegarde', icon: Shield },
   { key: 'modules', label: 'Modules & Secteurs', icon: Layers },
+  { key: 'sounds', label: 'Alertes sonores', icon: Volume2 },
   { key: 'audit', label: 'Journalisation', icon: FileText },
   { key: 'sync', label: 'Synchronisation', icon: Smartphone },
   { key: 'update', label: 'Mise à jour', icon: RefreshCw },
@@ -391,13 +416,25 @@ export default function ParametresPage() {
   const { fontScale, setFontScale, darkMode, setDarkMode } = useTheme()
   const { user } = useAuth()
   const { isMobile } = useDevice()
+  const { activeSector } = useSector()
   const navigate = useNavigate()
+
+  const CATEGORIES = useMemo(() => {
+    const sectorCats = SECTOR_CATEGORIES[activeSector] || []
+    return [...sectorCats, ...UNIVERSAL_CATEGORIES]
+  }, [activeSector])
 
   const [cat, setCat] = useState('general')
   const [search, setSearch] = useState('')
   const [saved, setSaved] = useState(false)
   const [showReset, setShowReset] = useState(false)
   const [resetConfirm, setResetConfirm] = useState('')
+
+  useEffect(() => {
+    if (!CATEGORIES.find(c => c.key === cat)) {
+      setCat(CATEGORIES[0]?.key || 'general')
+    }
+  }, [activeSector])
 
   // ── States ──
   const [company, setCompany] = useState(getCompanySettings)
@@ -456,12 +493,19 @@ export default function ParametresPage() {
 
   // ── Recherche ──
   const allSettings = useMemo(() => [
-    { cat: 'general', keys: ['entreprise', 'nom commercial', 'adresse', 'téléphone', 'email', 'devise', 'langue', 'thème', 'police', 'mode nuit', 'jour', 'logo'] },
+    { cat: 'general', keys: ['entreprise', 'nom commercial', 'adresse', 'téléphone', 'email', 'devise', 'langue', 'thème', 'police', 'mode nuit', 'jour', 'logo', 'affichage'] },
     { cat: 'utilisateurs', keys: ['utilisateurs', 'rôles', 'comptes', 'permissions', 'admin', 'vendeur', 'comptable', 'mot de passe', 'sécurité'] },
     { cat: 'produits', keys: ['produits', 'stock', 'catégories', 'seuil alerte', 'code-barres', 'bouteille', 'canette', 'approvisionnement'] },
     { cat: 'ventes', keys: ['ventes', 'paiements', 'remises', 'tickets', 'espèces', 'mobile money', 'carte', 'crédit'] },
     { cat: 'clients', keys: ['clients', 'fidélité', 'points', 'segmentation', 'vip', 'fichier'] },
+    { cat: 'finance', keys: ['comptabilité', 'plan comptable', 'écritures', 'journaux', 'balance', 'bilan', 'ohada', 'trésorerie', 'exercice', 'grand livre'] },
+    { cat: 'production', keys: ['production', 'matières premières', 'traçabilité', 'coûts', 'fabrication', 'suivi production', 'industrie'] },
+    { cat: 'transport', keys: ['transport', 'véhicules', 'livraisons', 'chauffeurs', 'carburant', 'itinéraires', 'colis', 'logistique'] },
+    { cat: 'sante', keys: ['santé', 'médicaments', 'patients', 'ordonnances', 'pharmacie', 'assurance', 'dosage', 'prescription'] },
+    { cat: 'education', keys: ['éducation', 'élèves', 'notes', 'bulletins', 'emploi du temps', 'enseignants', 'classes', 'scolaire'] },
+    { cat: 'ong', keys: ['ong', 'projets', 'bénéficiaires', 'partenaires', 'activités', 'associations', 'donateurs', 'budget'] },
     { cat: 'rapports', keys: ['rapports', 'export', 'pdf', 'excel', 'sauvegarde', 'backup'] },
+    { cat: 'sounds', keys: ['sons', 'alertes sonores', 'volume', 'bruit', 'notification sonore'] },
     { cat: 'securite', keys: ['sécurité', 'sauvegarde', 'mots de passe', 'chiffrement', 'restauration', 'réinitialiser', 'données', 'otp', 'twilio', 'sms', 'smtp', 'email', '2fa', 'vérification', 'verification', 'vérifier', 'code'] },
     { cat: 'modules', keys: ['modules', 'secteurs', 'commerce', 'finance', 'industrie', 'transport', 'santé', 'éducation', 'ong', 'activer', 'désactiver'] },
     { cat: 'audit', keys: ['journal', 'logs', 'audit', 'historique', 'actions', 'traçabilité'] },
@@ -974,57 +1018,9 @@ export default function ParametresPage() {
                 </SettingRow>
               </div>
 
-              {/* Alertes sonores */}
-              <div className="mt-6 pt-4 border-t dark:border-dark-600">
-                <h4 className="text-sm font-medium dark:text-gray-300 mb-3 flex items-center gap-2">
-                  <Bell className="w-4 h-4 text-gold-500" /> Alertes sonores
-                </h4>
-                <SettingRow label="Sons activés" desc="Activer/désactiver tous les sons">
-                  <div className="flex items-center gap-2">
-                    {sounds.enabled ? <Volume2 className="w-4 h-4 text-brand-500" /> : <VolumeX className="w-4 h-4 text-gray-400" />}
-                    <Toggle value={sounds.enabled} onChange={v => updateSound('enabled', v)} />
-                  </div>
-                </SettingRow>
-                {sounds.enabled && (
-                  <>
-                    <SettingRow label="Volume" desc={`${Math.round(sounds.volume * 100)}%`}>
-                      <div className="flex items-center gap-2">
-                        <VolumeX className="w-3 h-3 text-gray-400" />
-                        <input type="range" min={0} max={1} step={0.1} value={sounds.volume}
-                          onChange={e => updateSound('volume', +e.target.value)} className="w-24" />
-                        <Volume2 className="w-3 h-3 text-brand-500" />
-                      </div>
-                    </SettingRow>
-                    <SettingRow label="Rupture de stock" desc="Sonner quand un produit est en rupture">
-                      <Toggle value={sounds.stockAlert} onChange={v => updateSound('stockAlert', v)} />
-                    </SettingRow>
-                    <SettingRow label="Erreur de paiement" desc="Sonner en cas d'erreur">
-                      <Toggle value={sounds.paymentError} onChange={v => updateSound('paymentError', v)} />
-                    </SettingRow>
-                    <SettingRow label="Tentative suspecte" desc="Alarme en cas de fraude détectée">
-                      <Toggle value={sounds.suspiciousAttempt} onChange={v => updateSound('suspiciousAttempt', v)} />
-                    </SettingRow>
-                    <SettingRow label="Vente complète" desc="Son de confirmation après validation">
-                      <Toggle value={sounds.saleComplete} onChange={v => updateSound('saleComplete', v)} />
-                    </SettingRow>
-                    <SettingRow label="Remise importante" desc="Alerte sonore quand une remise > 20% est appliquée">
-                      <Toggle value={sounds.discountAlert} onChange={v => updateSound('discountAlert', v)} />
-                    </SettingRow>
-                    <SettingRow label="Quantité dépassée" desc="Alerte si la quantité demandée dépasse le stock">
-                      <Toggle value={sounds.quantityExceeded} onChange={v => updateSound('quantityExceeded', v)} />
-                    </SettingRow>
-                    <div className="mt-2">
-                      <button onClick={playTestSound} className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-lg text-xs font-medium hover:bg-brand-100 dark:hover:bg-brand-900/30">
-                        <Volume2 className="w-3.5 h-3.5" /> Tester le son
-                      </button>
-                    </div>
-                  </>
-                )}
-              </div>
-
               <button onClick={() => save('ventes')} className="btn-primary text-sm py-2 px-5 mt-4 flex items-center gap-2">
-                <Save className="w-4 h-4" /> Enregistrer
-              </button>
+                  <Save className="w-4 h-4" /> Enregistrer
+                </button>
             </div>
           )}
 
@@ -1100,6 +1096,74 @@ export default function ParametresPage() {
               </button>
             </div>
           )}
+
+          {/* ═══ ALERTES SONORES ═══ */}
+          {activeCat === 'sounds' && (
+            <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+              <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+                <Volume2 className="w-5 h-5 text-brand-500" /> Alertes sonores
+              </h3>
+              <SettingRow label="Sons activés" desc="Activer/désactiver tous les sons">
+                <div className="flex items-center gap-2">
+                  {sounds.enabled ? <Volume2 className="w-4 h-4 text-brand-500" /> : <VolumeX className="w-4 h-4 text-gray-400" />}
+                  <Toggle value={sounds.enabled} onChange={v => updateSound('enabled', v)} />
+                </div>
+              </SettingRow>
+              {sounds.enabled && (
+                <>
+                  <SettingRow label="Volume" desc={`${Math.round(sounds.volume * 100)}%`}>
+                    <div className="flex items-center gap-2">
+                      <VolumeX className="w-3 h-3 text-gray-400" />
+                      <input type="range" min={0} max={1} step={0.1} value={sounds.volume}
+                        onChange={e => updateSound('volume', +e.target.value)} className="w-24" />
+                      <Volume2 className="w-3 h-3 text-brand-500" />
+                    </div>
+                  </SettingRow>
+                  <SettingRow label="Rupture de stock" desc="Sonner quand un produit est en rupture">
+                    <Toggle value={sounds.stockAlert} onChange={v => updateSound('stockAlert', v)} />
+                  </SettingRow>
+                  <SettingRow label="Erreur de paiement" desc="Sonner en cas d'erreur">
+                    <Toggle value={sounds.paymentError} onChange={v => updateSound('paymentError', v)} />
+                  </SettingRow>
+                  <SettingRow label="Tentative suspecte" desc="Alarme en cas de fraude détectée">
+                    <Toggle value={sounds.suspiciousAttempt} onChange={v => updateSound('suspiciousAttempt', v)} />
+                  </SettingRow>
+                  <SettingRow label="Vente complète" desc="Son de confirmation après validation">
+                    <Toggle value={sounds.saleComplete} onChange={v => updateSound('saleComplete', v)} />
+                  </SettingRow>
+                  <SettingRow label="Remise importante" desc="Alerte sonore quand une remise > 20% est appliquée">
+                    <Toggle value={sounds.discountAlert} onChange={v => updateSound('discountAlert', v)} />
+                  </SettingRow>
+                  <SettingRow label="Quantité dépassée" desc="Alerte si la quantité demandée dépasse le stock">
+                    <Toggle value={sounds.quantityExceeded} onChange={v => updateSound('quantityExceeded', v)} />
+                  </SettingRow>
+                  <div className="mt-2">
+                    <button onClick={playTestSound} className="flex items-center gap-1.5 px-3 py-1.5 bg-brand-50 dark:bg-brand-900/20 text-brand-600 dark:text-brand-400 rounded-lg text-xs font-medium hover:bg-brand-100 dark:hover:bg-brand-900/30">
+                      <Volume2 className="w-3.5 h-3.5" /> Tester le son
+                    </button>
+                  </div>
+                </>
+              )}
+            </div>
+          )}
+
+          {/* ═══ FINANCE / COMPTABILITÉ ═══ */}
+          {activeCat === 'finance' && <FinanceSectorSection />}
+
+          {/* ═══ PRODUCTION (INDUSTRIE) ═══ */}
+          {activeCat === 'production' && <ProductionSectorSection />}
+
+          {/* ═══ TRANSPORT ═══ */}
+          {activeCat === 'transport' && <TransportSectorSection />}
+
+          {/* ═══ SANTÉ ═══ */}
+          {activeCat === 'sante' && <SanteSectorSection />}
+
+          {/* ═══ ÉDUCATION ═══ */}
+          {activeCat === 'education' && <EducationSectorSection />}
+
+          {/* ═══ ONG ═══ */}
+          {activeCat === 'ong' && <OngSectorSection />}
 
           {/* ═══ SÉCURITÉ & SAUVEGARDE ═══ */}
           {activeCat === 'securite' && (
@@ -1383,6 +1447,416 @@ export default function ParametresPage() {
             />
           )}
         </div>
+      </div>
+    </div>
+  )
+}
+
+// ── Composant Finance / Comptabilité ──
+function FinanceSectorSection() {
+  const [financeSettings, setFinanceSettings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('gestocom_finance_settings') || '{}') } catch { return {} }
+  })
+  const [msg, setMsg] = useState('')
+
+  const update = (key, value) => {
+    const next = { ...financeSettings, [key]: value }
+    setFinanceSettings(next)
+    localStorage.setItem('gestocom_finance_settings', JSON.stringify(next))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <Landmark className="w-5 h-5 text-emerald-500" /> Plan Comptable OHADA
+        </h3>
+        <SettingRow label="Plan comptable activé" desc="Activer le référentiel OHADA">
+          <Toggle value={financeSettings.planActif || false} onChange={v => update('planActif', v)} />
+        </SettingRow>
+        <SettingRow label="Société comptable" desc="Nom affiché sur les états financiers">
+          <Input value={financeSettings.societe || ''} onChange={v => update('societe', v)} placeholder="Nom de l'entreprise" className="w-64" />
+        </SettingRow>
+        <SettingRow label="Devise comptable" desc="Devise pour les états financiers">
+          <Input value={financeSettings.deviseComptable || 'FCFA'} onChange={v => update('deviseComptable', v)} className="w-32 text-center" />
+        </SettingRow>
+        <SettingRow label="Exercice par défaut" desc="Période comptable (ex: 2026)">
+          <Input value={financeSettings.exerciceDefaut || ''} onChange={v => update('exerciceDefaut', v)} placeholder="2026" className="w-24 text-center" />
+        </SettingRow>
+      </div>
+
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <BookOpen className="w-5 h-5 text-emerald-500" /> Écritures & Journaux
+        </h3>
+        <SettingRow label="Numérotation auto" desc="Numérotation automatique des écritures">
+          <Toggle value={financeSettings.numAuto || false} onChange={v => update('numAuto', v)} />
+        </SettingRow>
+        <SettingRow label="Préfixe écritures" desc="Préfixe pour les numéros d'écritures">
+          <Input value={financeSettings.prefixeEcriture || 'EC'} onChange={v => update('prefixeEcriture', v)} className="w-24 text-center" />
+        </SettingRow>
+        <SettingRow label="Journal par défaut" desc="Journal utilisé par défaut">
+          <select value={financeSettings.journalDefaut || 'OD'} onChange={e => update('journalDefaut', e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
+            <option value="OD">OD - Opérations Diverses</option>
+            <option value="ACH">ACH - Achats</option>
+            <option value="VEN">VEN - Ventes</option>
+            <option value="BQ">BQ - Banque</option>
+            <option value="CAI">CAI - Caisse</option>
+          </select>
+        </SettingRow>
+        <SettingRow label="Validation obligatoire" desc="Exiger la validation avant enregistrement">
+          <Toggle value={financeSettings.validationObligatoire || false} onChange={v => update('validationObligatoire', v)} />
+        </SettingRow>
+        <SettingRow label="Afficher grand livre" desc="Activer la consultation du grand livre">
+          <Toggle value={financeSettings.afficherGrandLivre || true} onChange={v => update('afficherGrandLivre', v)} />
+        </SettingRow>
+      </div>
+
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <BarChart3 className="w-5 h-5 text-emerald-500" /> Balance & Bilan
+        </h3>
+        <SettingRow label="Balance automatique" desc="Calculer la balance à chaque écriture">
+          <Toggle value={financeSettings.balanceAuto || true} onChange={v => update('balanceAuto', v)} />
+        </SettingRow>
+        <SettingRow label="Bilan simplifié" desc="Format simplifié pour le bilan">
+          <Toggle value={financeSettings.bilanSimplifie || false} onChange={v => update('bilanSimplifie', v)} />
+        </SettingRow>
+        <SettingRow label="Format export" desc="Format par défaut pour les états financiers">
+          <select value={financeSettings.formatExport || 'pdf'} onChange={e => update('formatExport', e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
+            <option value="pdf">PDF</option>
+            <option value="excel">Excel</option>
+            <option value="csv">CSV</option>
+          </select>
+        </SettingRow>
+      </div>
+
+      {msg && <p className="text-sm text-green-600 dark:text-green-400">{msg}</p>}
+    </div>
+  )
+}
+
+// ── Composant Production (Industrie) ──
+function ProductionSectorSection() {
+  const [prodSettings, setProdSettings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('gestocom_production_settings') || '{}') } catch { return {} }
+  })
+
+  const update = (key, value) => {
+    const next = { ...prodSettings, [key]: value }
+    setProdSettings(next)
+    localStorage.setItem('gestocom_production_settings', JSON.stringify(next))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <Factory className="w-5 h-5 text-amber-500" /> Général Production
+        </h3>
+        <SettingRow label="Suivi de production activé" desc="Activer le module de production">
+          <Toggle value={prodSettings.suiviActif || false} onChange={v => update('suiviActif', v)} />
+        </SettingRow>
+        <SettingRow label="Traçabilité matières premières" desc="Suivre l'origine des matières">
+          <Toggle value={prodSettings.tracabilite || false} onChange={v => update('tracabilite', v)} />
+        </SettingRow>
+        <SettingRow label="Gestion des coûts" desc="Calculer les coûts de production">
+          <Toggle value={prodSettings.gestionCouts || false} onChange={v => update('gestionCouts', v)} />
+        </SettingRow>
+        <SettingRow label="Unité de mesure par défaut">
+          <select value={prodSettings.uniteDefaut || 'kg'} onChange={e => update('uniteDefaut', e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
+            <option value="kg">Kilogramme (kg)</option>
+            <option value="l">Litre (L)</option>
+            <option value="unite">Unité</option>
+            <option value="tonne">Tonne</option>
+            <option value="m3">Mètre cube (m³)</option>
+          </select>
+        </SettingRow>
+      </div>
+
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <ClipboardList className="w-5 h-5 text-amber-500" /> Ordres de production
+        </h3>
+        <SettingRow label="Préfixe ordre" desc="Préfixe pour les numéros d'ordres">
+          <Input value={prodSettings.prefixeOrdre || 'OP'} onChange={v => update('prefixeOrdre', v)} className="w-24 text-center" />
+        </SettingRow>
+        <SettingRow label="Numérotation auto" desc="Numéroter automatiquement les ordres">
+          <Toggle value={prodSettings.numAuto || true} onChange={v => update('numAuto', v)} />
+        </SettingRow>
+        <SettingRow label="Alerte retard" desc="Notifier quand un ordre dépasse la date prévue">
+          <Toggle value={prodSettings.alerteRetard || true} onChange={v => update('alerteRetard', v)} />
+        </SettingRow>
+        <SettingRow label="Qualité par défaut" desc="Statut qualité initial">
+          <select value={prodSettings.qualiteDefaut || 'en_attente'} onChange={e => update('qualiteDefaut', e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
+            <option value="en_attente">En attente</option>
+            <option value="controle">En contrôle</option>
+            <option value="valide">Validé</option>
+          </select>
+        </SettingRow>
+      </div>
+    </div>
+  )
+}
+
+// ── Composant Transport ──
+function TransportSectorSection() {
+  const [transpSettings, setTranspSettings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('gestocom_transport_settings') || '{}') } catch { return {} }
+  })
+
+  const update = (key, value) => {
+    const next = { ...transpSettings, [key]: value }
+    setTranspSettings(next)
+    localStorage.setItem('gestocom_transport_settings', JSON.stringify(next))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <Truck className="w-5 h-5 text-sky-500" /> Véhicules
+        </h3>
+        <SettingRow label="Gestion véhicules activée" desc="Activer le suivi des véhicules">
+          <Toggle value={transpSettings.vehiculesActifs || false} onChange={v => update('vehiculesActifs', v)} />
+        </SettingRow>
+        <SettingRow label="Suivi kilométrage" desc="Enregistrer les kilomètres parcourus">
+          <Toggle value={transpSettings.suiviKm || false} onChange={v => update('suiviKm', v)} />
+        </SettingRow>
+        <SettingRow label="Alerte entretien" desc="Rappel d'entretien periodique (km)">
+          <Input type="number" value={transpSettings.alerteKm || 10000} onChange={v => update('alerteKm', +v)} className="w-24 text-center" />
+        </SettingRow>
+        <SettingRow label="Coût carburant par défaut" desc="Prix du litre en FCFA">
+          <Input type="number" value={transpSettings.coutCarburant || 750} onChange={v => update('coutCarburant', +v)} className="w-24 text-center" />
+        </SettingRow>
+      </div>
+
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <Target className="w-5 h-5 text-sky-500" /> Livraisons
+        </h3>
+        <SettingRow label="Suivi livraisons" desc="Activer le suivi des livraisons">
+          <Toggle value={transpSettings.suiviLivraisons || false} onChange={v => update('suiviLivraisons', v)} />
+        </SettingRow>
+        <SettingRow label="Préfixe bon de livraison">
+          <Input value={transpSettings.prefixeBL || 'BL'} onChange={v => update('prefixeBL', v)} className="w-24 text-center" />
+        </SettingRow>
+        <SettingRow label="Délai max livraison" desc="Nombre d'heures maximum">
+          <Input type="number" value={transpSettings.delaiMaxH || 48} onChange={v => update('delaiMaxH', +v)} className="w-24 text-center" />
+        </SettingRow>
+        <SettingRow label="Notification client" desc="Notifier le client à l'expédition">
+          <Toggle value={transpSettings.notifClient || false} onChange={v => update('notifClient', v)} />
+        </SettingRow>
+      </div>
+
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <Clock className="w-5 h-5 text-sky-500" /> Chauffeurs
+        </h3>
+        <SettingRow label="Gestion chauffeurs" desc="Activer la gestion des chauffeurs">
+          <Toggle value={transpSettings.chauffeursActifs || false} onChange={v => update('chauffeursActifs', v)} />
+        </SettingRow>
+        <SettingRow label="Pointage obligatoire" desc="Exiger le pointage début/fin">
+          <Toggle value={transpSettings.pointageObligatoire || false} onChange={v => update('pointageObligatoire', v)} />
+        </SettingRow>
+      </div>
+    </div>
+  )
+}
+
+// ── Composant Santé ──
+function SanteSectorSection() {
+  const [santeSettings, setSanteSettings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('gestocom_sante_settings') || '{}') } catch { return {} }
+  })
+
+  const update = (key, value) => {
+    const next = { ...santeSettings, [key]: value }
+    setSanteSettings(next)
+    localStorage.setItem('gestocom_sante_settings', JSON.stringify(next))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <Stethoscope className="w-5 h-5 text-rose-500" /> Médicaments & Stock
+        </h3>
+        <SettingRow label="Gestion médicaments activée" desc="Module de gestion pharmaceutique">
+          <Toggle value={santeSettings.medicamentsActifs || false} onChange={v => update('medicamentsActifs', v)} />
+        </SettingRow>
+        <SettingRow label="Stock minimum par défaut" desc="Seuil d'alerte stock bas">
+          <Input type="number" value={santeSettings.stockMinDefaut || 10} onChange={v => update('stockMinDefaut', +v)} className="w-24 text-center" />
+        </SettingRow>
+        <SettingRow label="Alerte péremption" desc="Jours avant la date de péremption">
+          <Input type="number" value={santeSettings.alertePeremption || 30} onChange={v => update('alertePeremption', +v)} className="w-24 text-center" />
+        </SettingRow>
+        <SettingRow label="Traçabilité lots" desc="Suivre les numéros de lot">
+          <Toggle value={santeSettings.tracabiliteLots || false} onChange={v => update('tracabiliteLots', v)} />
+        </SettingRow>
+        <SettingRow label="Température de stockage" desc="Afficher les conditions de conservation">
+          <Toggle value={santeSettings.conditions_stockage || false} onChange={v => update('conditions_stockage', v)} />
+        </SettingRow>
+      </div>
+
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <Users className="w-5 h-5 text-rose-500" /> Patients & Ordonnances
+        </h3>
+        <SettingRow label="Gestion ordonnances" desc="Activer la prescription médicale">
+          <Toggle value={santeSettings.ordonnancesActives || false} onChange={v => update('ordonnancesActives', v)} />
+        </SettingRow>
+        <SettingRow label="Préfixe ordonnance">
+          <Input value={santeSettings.prefixeOrdonnance || 'ORD'} onChange={v => update('prefixeOrdonnance', v)} className="w-24 text-center" />
+        </SettingRow>
+        <SettingRow label="Assurance patients" desc="Gérer les mutuelles/assurances">
+          <Toggle value={santeSettings.assuranceActivee || false} onChange={v => update('assuranceActivee', v)} />
+        </SettingRow>
+        <SettingRow label="Historique patients" desc="Conserver l'historique des visites">
+          <Toggle value={santeSettings.historiqueActif || true} onChange={v => update('historiqueActif', v)} />
+        </SettingRow>
+      </div>
+    </div>
+  )
+}
+
+// ── Composant Éducation ──
+function EducationSectorSection() {
+  const [eduSettings, setEduSettings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('gestocom_education_settings') || '{}') } catch { return {} }
+  })
+
+  const update = (key, value) => {
+    const next = { ...eduSettings, [key]: value }
+    setEduSettings(next)
+    localStorage.setItem('gestocom_education_settings', JSON.stringify(next))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <GraduationCap className="w-5 h-5 text-violet-500" /> Élèves & Inscriptions
+        </h3>
+        <SettingRow label="Gestion élèves activée" desc="Module de gestion scolaire">
+          <Toggle value={eduSettings.elevesActifs || false} onChange={v => update('elevesActifs', v)} />
+        </SettingRow>
+        <SettingRow label="Année scolaire" desc="Année en cours">
+          <Input value={eduSettings.anneeScolaire || ''} onChange={v => update('anneeScolaire', v)} placeholder="2025-2026" className="w-32 text-center" />
+        </SettingRow>
+        <SettingRow label="Inscriptions automatiques" desc="Réinscrire automatiquement les élèves">
+          <Toggle value={eduSettings.inscriptionsAuto || false} onChange={v => update('inscriptionsAuto', v)} />
+        </SettingRow>
+      </div>
+
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <StickyNote className="w-5 h-5 text-violet-500" /> Notes & Bulletins
+        </h3>
+        <SettingRow label="Système de notation" desc="Barème de notation">
+          <select value={eduSettings.bareme || 20} onChange={e => update('bareme', +e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
+            <option value={20}>Sur 20</option>
+            <option value={100}>Sur 100</option>
+            <option value={5}>Sur 5</option>
+          </select>
+        </SettingRow>
+        <SettingRow label="Bulletins automatiques" desc="Générer les bulletins automatiquement">
+          <Toggle value={eduSettings.bulletinsAuto || false} onChange={v => update('bulletinsAuto', v)} />
+        </SettingRow>
+        <SettingRow label="Moyenne minimale" desc="Note minimale pour validation">
+          <Input type="number" value={eduSettings.moyenneMin || 10} onChange={v => update('moyenneMin', +v)} className="w-24 text-center" />
+        </SettingRow>
+        <SettingRow label="Coefficients" desc="Activer les coefficients par matière">
+          <Toggle value={eduSettings.coefficientsActifs || true} onChange={v => update('coefficientsActifs', v)} />
+        </SettingRow>
+      </div>
+
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <Clock className="w-5 h-5 text-violet-500" /> Emploi du temps
+        </h3>
+        <SettingRow label="Emploi du temps activé" desc="Gérer les plannings de cours">
+          <Toggle value={eduSettings.edtActif || false} onChange={v => update('edtActif', v)} />
+        </SettingRow>
+        <SettingRow label="Durée créneau" desc="Durée d'un créneau en minutes">
+          <Input type="number" value={eduSettings.dureeCreneau || 50} onChange={v => update('dureeCreneau', +v)} className="w-24 text-center" />
+        </SettingRow>
+      </div>
+    </div>
+  )
+}
+
+// ── Composant ONG ──
+function OngSectorSection() {
+  const [ongSettings, setOngSettings] = useState(() => {
+    try { return JSON.parse(localStorage.getItem('gestocom_ong_settings') || '{}') } catch { return {} }
+  })
+
+  const update = (key, value) => {
+    const next = { ...ongSettings, [key]: value }
+    setOngSettings(next)
+    localStorage.setItem('gestocom_ong_settings', JSON.stringify(next))
+  }
+
+  return (
+    <div className="space-y-6">
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <Handshake className="w-5 h-5 text-teal-500" /> Projets
+        </h3>
+        <SettingRow label="Gestion projets activée" desc="Module de gestion de projets">
+          <Toggle value={ongSettings.projetsActifs || false} onChange={v => update('projetsActifs', v)} />
+        </SettingRow>
+        <SettingRow label="Préfixe projet">
+          <Input value={ongSettings.prefixeProjet || 'PRJ'} onChange={v => update('prefixeProjet', v)} className="w-24 text-center" />
+        </SettingRow>
+        <SettingRow label="Suivi budget par projet" desc="Allouer un budget à chaque projet">
+          <Toggle value={ongSettings.suiviBudget || false} onChange={v => update('suiviBudget', v)} />
+        </SettingRow>
+        <SettingRow label="Indicateurs résultats" desc="Définir des indicateurs mesurables">
+          <Toggle value={ongSettings.indicateurs || false} onChange={v => update('indicateurs', v)} />
+        </SettingRow>
+      </div>
+
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <UsersRound className="w-5 h-5 text-teal-500" /> Bénéficiaires
+        </h3>
+        <SettingRow label="Gestion bénéficiaires" desc="Suivre les bénéficiaires des projets">
+          <Toggle value={ongSettings.beneficiairesActifs || false} onChange={v => update('beneficiairesActifs', v)} />
+        </SettingRow>
+        <SettingRow label="Données sensibles" desc="Masquer les données personnelles par défaut">
+          <Toggle value={ongSettings.donneesSensibles || true} onChange={v => update('donneesSensibles', v)} />
+        </SettingRow>
+        <SettingRow label="Genre bénéficiaires" desc="Collecter le genre pour les rapports">
+          <Toggle value={ongSettings.genreActif || true} onChange={v => update('genreActif', v)} />
+        </SettingRow>
+      </div>
+
+      <div className="bg-white dark:bg-dark-800 rounded-xl p-6 border border-gray-100 dark:border-dark-700">
+        <h3 className="font-semibold mb-4 flex items-center gap-2 dark:text-white">
+          <Wallet className="w-5 h-5 text-teal-500" /> Partenaires & Financement
+        </h3>
+        <SettingRow label="Gestion partenaires" desc="Suivre les bailleurs de fonds et partenaires">
+          <Toggle value={ongSettings.partenairesActifs || false} onChange={v => update('partenairesActifs', v)} />
+        </SettingRow>
+        <SettingRow label="Rapports d'activités" desc="Générer des rapports periodiques">
+          <Toggle value={ongSettings.rapportsAuto || false} onChange={v => update('rapportsAuto', v)} />
+        </SettingRow>
+        <SettingRow label="Périodicité rapports">
+          <select value={ongSettings.periodiciteRapports || 'trimestrielle'} onChange={e => update('periodiciteRapports', e.target.value)}
+            className="px-3 py-1.5 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
+            <option value="mensuelle">Mensuelle</option>
+            <option value="trimestrielle">Trimestrielle</option>
+            <option value="semestrielle">Semestrielle</option>
+            <option value="annuelle">Annuelle</option>
+          </select>
+        </SettingRow>
       </div>
     </div>
   )
