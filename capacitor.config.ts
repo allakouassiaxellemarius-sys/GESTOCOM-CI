@@ -4,28 +4,30 @@ const config: CapacitorConfig = {
   appId: 'com.gestocom.ci',
   appName: 'GESTOCOM CI',
   webDir: 'dist',
-  backgroundColor: '#1a1a2e',
+  backgroundColor: '#1e40af',
   server: {
     androidScheme: 'https'
   },
   android: {
     allowMixedContent: true,
-    backgroundColor: '#1a1a2e',
-    backgroundColorDark: '#0f0f23',
+    backgroundColor: '#1e40af',
+    backgroundColorDark: '#0f172a',
     captureInput: true,
     webContentsDebuggingEnabled: false,
+    overrideUserAgent: undefined,
+    appendUserAgent: undefined,
   },
   ios: {
-    backgroundColor: '#1a1a2e',
+    backgroundColor: '#1e40af',
     preferredContentMode: 'mobile',
-    backgroundColorDark: '#0f0f23',
+    backgroundColorDark: '#0f172a',
   },
   plugins: {
     SQLite: {
       // jeep-sqlite web fallback is auto-detected
     },
     SplashScreen: {
-      launchShowDuration: 1500,
+      launchShowDuration: 1200,
       backgroundColor: '#1e40af',
       androidScaleType: 'CENTER_CROP',
       showSpinner: false,

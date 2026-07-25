@@ -83,13 +83,14 @@
   .layout-header h1 { font-size: 0.8125rem !important; }
 
   /* Compact bottom nav: hide text labels, keep icons */
-  .layout-nav { height: 2.25rem !important; padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
+  .layout-nav { height: 2.5rem !important; padding-bottom: env(safe-area-inset-bottom, 0px) !important; }
   .layout-nav a span,
   .layout-nav button span { display: none !important; }
   .layout-nav a,
-  .layout-nav button { height: 2.25rem !important; }
+  .layout-nav button { height: 2.5rem !important; }
   .layout-nav a svg,
   .layout-nav button svg { width: 1.125rem !important; height: 1.125rem !important; }
+  .layout-nav .rounded-2xl { border-radius: 0.75rem !important; width: 2rem !important; height: 2rem !important; }
 
   .layout-main { padding: 0.5rem !important; padding-bottom: 3rem !important; }
 
@@ -116,8 +117,9 @@
 
 @media screen and (orientation: landscape) and (max-height: 400px) {
   html { font-size: 0.6875rem; }
-  .layout-nav { height: 2rem !important; }
-  .layout-nav a, .layout-nav button { height: 2rem !important; }
+  .layout-nav { height: 2.25rem !important; }
+  .layout-nav a, .layout-nav button { height: 2.25rem !important; }
+  .layout-nav .rounded-2xl { border-radius: 0.5rem !important; width: 1.75rem !important; height: 1.75rem !important; }
   .layout-header { height: 2rem !important; }
   .layout-main { padding: 0.375rem !important; padding-bottom: 2.5rem !important; }
 
@@ -208,16 +210,16 @@
 
   /* ── Bottom sheet ── */
   .bottom-sheet {
-    @apply fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-dark-800 
-           rounded-t-3xl shadow-2xl;
+    @apply fixed inset-x-0 bottom-0 z-50 bg-white dark:bg-dark-900 
+           rounded-t-[1.75rem] shadow-[0_-8px_40px_rgba(0,0,0,0.12)];
     max-height: 85vh;
     padding-bottom: env(safe-area-inset-bottom, 0px);
-    animation: sheetSlideUp 0.3s cubic-bezier(0.32, 0.72, 0, 1);
+    animation: sheetSlideUp 0.35s cubic-bezier(0.32, 0.72, 0, 1);
   }
 
   .bottom-sheet-overlay {
-    @apply fixed inset-0 z-40 bg-black/40;
-    animation: fadeIn 0.2s ease-out;
+    @apply fixed inset-0 z-40 bg-black/45 backdrop-blur-sm;
+    animation: fadeIn 0.25s ease-out;
   }
 
   /* ── Page transitions ── */
@@ -256,7 +258,7 @@
   /* ── FAB safe position (above bottom nav) ── */
   .fab-safe {
     @apply fixed z-30;
-    bottom: calc(3.5rem + env(safe-area-inset-bottom, 0px) + 0.75rem);
+    bottom: calc(3.75rem + env(safe-area-inset-bottom, 0px) + 0.75rem);
   }
 
   /* ── Fluid stat value ── */
@@ -355,6 +357,112 @@
 @keyframes shimmer {
   from { background-position: -200% 0; }
   to { background-position: 200% 0; }
+}
+
+/* ═══ PROFESSIONAL MOBILE SHELL ═══ */
+
+/* Bottom nav shadow — subtle elevation like native apps */
+.mobile-nav-shadow {
+  box-shadow:
+    0 -1px 3px rgba(0, 0, 0, 0.04),
+    0 -4px 12px rgba(0, 0, 0, 0.03);
+}
+.dark .mobile-nav-shadow {
+  box-shadow:
+    0 -1px 3px rgba(0, 0, 0, 0.2),
+    0 -4px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Header shadow — appears on scroll */
+.mobile-header-shadow {
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.04);
+}
+.dark .mobile-header-shadow {
+  box-shadow: 0 1px 8px rgba(0, 0, 0, 0.2);
+}
+
+/* Smooth page transitions */
+.page-enter {
+  animation: pageSlideIn 0.3s cubic-bezier(0.32, 0.72, 0, 1) both;
+}
+
+/* Tab press ripple effect */
+@keyframes tabRipple {
+  0% { transform: scale(0); opacity: 0.35; }
+  100% { transform: scale(2.5); opacity: 0; }
+}
+
+/* Card press effect for touch devices */
+@media (hover: none) {
+  .touch-feedback:active {
+    transform: scale(0.97);
+    transition: transform 0.1s ease-out;
+  }
+
+  .card {
+    @apply hover:shadow-sm hover:border-dark-100 hover:translate-y-0;
+    -webkit-tap-highlight-color: transparent;
+  }
+
+  /* Prevent text selection on interactive elements */
+  .bottom-nav a,
+  .bottom-nav button,
+  .layout-nav a,
+  .layout-nav button {
+    -webkit-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+  }
+}
+
+/* Bottom sheet drag indicator — more refined */
+.bottom-sheet > div:first-child > div:first-child {
+  width: 2.5rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Professional loading shimmer */
+@keyframes shimmerV2 {
+  0% { background-position: -100% 0; }
+  100% { background-position: 200% 0; }
+}
+.skeleton-v2 {
+  background: linear-gradient(
+    90deg,
+    rgba(0, 0, 0, 0.04) 25%,
+    rgba(0, 0, 0, 0.08) 50%,
+    rgba(0, 0, 0, 0.04) 75%
+  );
+  background-size: 200% 100%;
+  animation: shimmerV2 1.5s infinite;
+  border-radius: 0.5rem;
+}
+.dark .skeleton-v2 {
+  background: linear-gradient(
+    90deg,
+    rgba(255, 255, 255, 0.04) 25%,
+    rgba(255, 255, 255, 0.08) 50%,
+    rgba(255, 255, 255, 0.04) 75%
+  );
+  background-size: 200% 100%;
+}
+
+/* Smooth scroll snap for horizontal lists */
+.scroll-snap-x {
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+.scroll-snap-x > * {
+  scroll-snap-align: start;
+}
+
+/* Status bar transition for dark mode */
+@supports (color-scheme: dark) {
+  :root {
+    color-scheme: light dark;
+  }
 }
 
 /* ═══ GLOBAL OVERFLOW PREVENTION ═══ */

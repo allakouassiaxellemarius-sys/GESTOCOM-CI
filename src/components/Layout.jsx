@@ -19,6 +19,10 @@ import SyncStatusBar from './SyncStatusBar'
 
 const ICONS = { LayoutDashboard, Package, ShoppingCart, TrendingUp, Receipt, Truck, Settings, BarChart3, History, FileText, RotateCcw, ClipboardList, Landmark, Factory, Heart, GraduationCap, HandHeart, Users }
 
+const NavIcon = ({ icon: Icon, size = 22, ...props }) => (
+  <Icon size={size} strokeWidth={1.8} {...props} />
+)
+
 const SECTOR_NAV = {
   commerce: {
     icon: 'ShoppingCart', label: 'Commerce', to: '/app/stock',
@@ -261,15 +265,31 @@ export default function Layout({ children }) {
       {/* ═══ MAIN ═══ */}
       <div className={`flex-1 min-w-0 overflow-hidden ${isMobile ? '' : (sidebarOpen ? 'ml-56' : 'ml-0')} transition-all duration-200 flex flex-col min-h-screen`}>
         {/* Header */}
-        <header className="layout-header sticky top-0 z-20 bg-white/80 dark:bg-dark-800/80 backdrop-blur-xl border-b border-gray-200/60 dark:border-dark-700/60 safe-area-top">
-          <div className="px-4 h-12 flex items-center justify-between">
-            <div className="flex items-center gap-3">
+        <header className={`layout-header sticky top-0 z-20 backdrop-blur-2xl border-b transition-all duration-300 safe-area-top ${
+          isMobile
+            ? 'bg-white/70 dark:bg-dark-900/70 border-gray-100/50 dark:border-dark-700/30 mobile-header-shadow'
+            : 'bg-white/80 dark:bg-dark-800/80 border-gray-200/60 dark:border-dark-700/60'
+        }`}>
+          <div className={`flex items-center justify-between ${isMobile ? 'px-4 h-[52px]' : 'px-5 h-14'}`}>
+            <div className="flex items-center gap-3 min-w-0">
               {!isMobile && (
                 <button onClick={() => setSidebarOpen(!sidebarOpen)} className="p-2 -ml-2 rounded-xl hover:bg-gray-100 dark:hover:bg-dark-700 touch-target">
                   {sidebarOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}
                 </button>
               )}
-              <h1 className="text-sm font-semibold dark:text-white truncate max-w-[200px] sm:max-w-none">{getCurrentPageTitle()}</h1>
+              {isMobile && (
+                <div className="flex items-center gap-2.5">
+                  <div className="w-7 h-7 bg-gradient-to-br from-brand-500 to-brand-600 rounded-xl flex items-center justify-center shadow-md shadow-brand-500/20">
+                    <Zap className="w-3.5 h-3.5 text-white" strokeWidth={2.5} />
+                  </div>
+                  <h1 className="text-[15px] font-bold dark:text-white truncate tracking-tight" style={{ fontFamily: "'Montserrat', sans-serif" }}>
+                    {getCurrentPageTitle()}
+                  </h1>
+                </div>
+              )}
+              {!isMobile && (
+                <h1 className="text-sm font-semibold dark:text-white truncate max-w-[200px] sm:max-w-none">{getCurrentPageTitle()}</h1>
+              )}
             </div>
             <div className="flex items-center gap-2">
               <SyncStatusBar />
@@ -300,29 +320,43 @@ export default function Layout({ children }) {
 
       {/* ═══ MOBILE BOTTOM NAV ═══ */}
       {isMobile && (
-        <nav className="layout-nav fixed bottom-0 left-0 right-0 z-30 bg-white/90 dark:bg-dark-800/90 backdrop-blur-xl border-t border-gray-200/60 dark:border-dark-700/60 safe-area-bottom" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
-          <div className="flex items-center justify-around h-14">
+        <nav className="layout-nav fixed bottom-0 left-0 right-0 z-30 bg-white/95 dark:bg-dark-900/95 backdrop-blur-2xl border-t border-gray-100/80 dark:border-dark-700/50 safe-area-bottom mobile-nav-shadow" style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}>
+          <div className="flex items-stretch justify-around h-[60px] px-1">
             {getMobileTabs().map(item => {
               if (item.to === '__more') {
                 return (
                   <button key="more" onClick={() => { setShowMoreSheet(!showMoreSheet); setShowSectors(false) }}
-                    className={`flex flex-col items-center justify-center gap-0.5 w-14 h-14 transition-colors touch-target ${
-                      showMoreSheet ? 'text-brand-500' : 'text-gray-500 dark:text-gray-400'
+                    className={`flex flex-col items-center justify-center gap-1 flex-1 max-w-[72px] transition-all duration-200 touch-target relative ${
+                      showMoreSheet ? 'text-brand-500' : 'text-gray-400 dark:text-gray-500'
                     }`}>
-                    <MoreHorizontal className="w-5 h-5" />
-                    <span className="text-[10px]">{item.label}</span>
+                    <div className={`relative flex items-center justify-center w-10 h-10 rounded-2xl transition-all duration-300 ${
+                      showMoreSheet ? 'bg-brand-50 dark:bg-brand-500/15 scale-105' : 'active:bg-gray-100 dark:active:bg-dark-700'
+                    }`}>
+                      <MoreHorizontal className="w-[22px] h-[22px]" strokeWidth={showMoreSheet ? 2 : 1.8} />
+                    </div>
+                    <span className={`text-[10px] leading-none transition-all duration-200 ${
+                      showMoreSheet ? 'font-semibold text-brand-500' : 'font-medium'
+                    }`}>{item.label}</span>
                   </button>
                 )
               }
               const active = getActiveTab() === item.to
               return (
                 <Link key={item.to} to={item.to}
-                  className={`flex flex-col items-center justify-center gap-0.5 w-14 h-14 transition-colors touch-target relative ${
-                    active ? 'text-brand-500' : 'text-gray-500 dark:text-gray-400'
+                  className={`flex flex-col items-center justify-center gap-1 flex-1 max-w-[72px] transition-all duration-200 touch-target relative ${
+                    active ? 'text-brand-500' : 'text-gray-400 dark:text-gray-500'
                   }`}>
-                  <item.icon className="w-5 h-5" />
-                  <span className={`text-[10px] ${active ? 'font-semibold' : ''}`}>{item.label}</span>
-                  {active && <div className="absolute top-0.5 w-5 h-0.5 bg-brand-500 rounded-full" />}
+                  <div className={`relative flex items-center justify-center w-10 h-10 rounded-2xl transition-all duration-300 ${
+                    active
+                      ? 'bg-brand-50 dark:bg-brand-500/15 scale-105 shadow-sm shadow-brand-500/10'
+                      : 'active:bg-gray-100 dark:active:bg-dark-700 active:scale-95'
+                  }`}>
+                    <NavIcon icon={item.icon} size={active ? 23 : 22} className={`transition-all duration-200 ${active ? 'drop-shadow-sm' : ''}`} />
+                    {active && <div className="absolute -top-1 left-1/2 -translate-x-1/2 w-1 h-1 bg-brand-500 rounded-full" />}
+                  </div>
+                  <span className={`text-[10px] leading-none transition-all duration-200 ${
+                    active ? 'font-semibold' : 'font-medium'
+                  }`}>{item.label}</span>
                 </Link>
               )
             })}
@@ -335,78 +369,91 @@ export default function Layout({ children }) {
         <>
           <div className="bottom-sheet-overlay" onClick={() => setShowMoreSheet(false)} />
           <div className="bottom-sheet" ref={sheetRef} onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
-            <div className="px-4 pt-3 pb-2">
-              <div className="w-10 h-1 bg-gray-300 dark:bg-gray-600 rounded-full mx-auto mb-3" />
-              <h3 className="text-base font-bold dark:text-white">Plus</h3>
+            <div className="px-5 pt-3 pb-2">
+              <div className="w-10 h-1 bg-gray-300/60 dark:bg-gray-600/60 rounded-full mx-auto mb-3" />
+              <h3 className="text-base font-bold dark:text-white tracking-tight" style={{ fontFamily: "'Montserrat', sans-serif" }}>Plus</h3>
             </div>
             <div className="overflow-y-auto max-h-[65vh] pb-4">
               {(!isFiltered || activeSector === 'commerce') && (
                 <>
-                  <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Navigation</div>
-                  <div className="px-4 pb-2 grid grid-cols-2 gap-2">
+                  <div className="px-5 pt-3 pb-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.08em]">Navigation</div>
+                  <div className="px-5 pb-3 grid grid-cols-2 gap-2.5">
                     <Link to="/app/ventes/historique" onClick={() => setShowMoreSheet(false)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                      <History className="w-4 h-4 text-gray-500" /> Historique
+                      className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl text-sm bg-gray-50 dark:bg-dark-700/50 text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-600 transition-all duration-150 touch-feedback border border-gray-100/60 dark:border-dark-600/30">
+                      <History className="w-4 h-4 text-gray-400" /> Historique
                     </Link>
                     <Link to="/app/ventes/recus" onClick={() => setShowMoreSheet(false)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                      <FileText className="w-4 h-4 text-gray-500" /> Reçus
+                      className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl text-sm bg-gray-50 dark:bg-dark-700/50 text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-600 transition-all duration-150 touch-feedback border border-gray-100/60 dark:border-dark-600/30">
+                      <FileText className="w-4 h-4 text-gray-400" /> Reçus
                     </Link>
                     <Link to="/app/ventes/rapports" onClick={() => setShowMoreSheet(false)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                      <BarChart3 className="w-4 h-4 text-gray-500" /> Rapports
+                      className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl text-sm bg-gray-50 dark:bg-dark-700/50 text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-600 transition-all duration-150 touch-feedback border border-gray-100/60 dark:border-dark-600/30">
+                      <BarChart3 className="w-4 h-4 text-gray-400" /> Rapports
                     </Link>
                     <Link to="/app/profit" onClick={() => setShowMoreSheet(false)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                      <TrendingUp className="w-4 h-4 text-gray-500" /> Profit
+                      className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl text-sm bg-gray-50 dark:bg-dark-700/50 text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-600 transition-all duration-150 touch-feedback border border-gray-100/60 dark:border-dark-600/30">
+                      <TrendingUp className="w-4 h-4 text-emerald-500" /> Profit
                     </Link>
                     <Link to="/app/fournisseurs" onClick={() => setShowMoreSheet(false)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                      <Truck className="w-4 h-4 text-gray-500" /> Fournisseurs
+                      className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl text-sm bg-gray-50 dark:bg-dark-700/50 text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-600 transition-all duration-150 touch-feedback border border-gray-100/60 dark:border-dark-600/30">
+                      <Truck className="w-4 h-4 text-gray-400" /> Fournisseurs
                     </Link>
                     <Link to="/app/retours" onClick={() => setShowMoreSheet(false)}
-                      className="flex items-center gap-2 px-3 py-2.5 rounded-xl text-sm bg-gray-100 dark:bg-dark-700 text-gray-700 dark:text-gray-300 active:bg-gray-200 dark:active:bg-dark-600 touch-feedback">
-                      <RotateCcw className="w-4 h-4 text-gray-500" /> Retours
+                      className="flex items-center gap-2.5 px-3.5 py-3 rounded-2xl text-sm bg-gray-50 dark:bg-dark-700/50 text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-600 transition-all duration-150 touch-feedback border border-gray-100/60 dark:border-dark-600/30">
+                      <RotateCcw className="w-4 h-4 text-orange-500" /> Retours
                     </Link>
                   </div>
                 </>
               )}
 
-              <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Outils</div>
-              <div className="px-4 pb-2">
+              <div className="px-5 pt-2 pb-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.08em]">Outils</div>
+              <div className="px-5 pb-3 space-y-1">
                 <Link to="/app/ia" onClick={() => setShowMoreSheet(false)}
-                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                  <BarChart3 className="w-4 h-4 text-brand-500" /> Analyses & Prévisions
+                  className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-50 dark:active:bg-dark-700 transition-all duration-150 touch-feedback">
+                  <div className="w-8 h-8 rounded-xl bg-brand-50 dark:bg-brand-500/10 flex items-center justify-center">
+                    <BarChart3 className="w-4 h-4 text-brand-500" />
+                  </div>
+                  Analyses & Prévisions
                 </Link>
                 {user?.role === 'admin' && (
                   <Link to="/app/documents" onClick={() => setShowMoreSheet(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                    <ShieldCheck className="w-4 h-4 text-blue-500" /> Documents KYC/KYB
+                    className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-50 dark:active:bg-dark-700 transition-all duration-150 touch-feedback">
+                    <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
+                      <ShieldCheck className="w-4 h-4 text-blue-500" />
+                    </div>
+                    Documents KYC/KYB
                   </Link>
                 )}
                 {user?.role === 'admin' && (
                   <Link to="/app/logiciels" onClick={() => setShowMoreSheet(false)}
-                    className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                    <Monitor className="w-4 h-4 text-violet-500" /> Logiciels
+                    className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-50 dark:active:bg-dark-700 transition-all duration-150 touch-feedback">
+                    <div className="w-8 h-8 rounded-xl bg-violet-50 dark:bg-violet-500/10 flex items-center justify-center">
+                      <Monitor className="w-4 h-4 text-violet-500" />
+                    </div>
+                    Logiciels
                   </Link>
                 )}
               </div>
 
               {user?.role === 'admin' && (
                 <>
-                  <div className="px-4 pt-2 pb-1 text-[10px] font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">Administration</div>
-                  <div className="px-4 pb-2">
+                  <div className="px-5 pt-2 pb-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.08em]">Administration</div>
+                  <div className="px-5 pb-3">
                     <Link to="/app/parametres" onClick={() => setShowMoreSheet(false)}
-                      className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-100 dark:active:bg-dark-700 touch-feedback">
-                      <Settings className="w-4 h-4 text-gray-500" /> Paramètres
+                      className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-50 dark:active:bg-dark-700 transition-all duration-150 touch-feedback">
+                      <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-dark-600 flex items-center justify-center">
+                        <Settings className="w-4 h-4 text-gray-500" />
+                      </div>
+                      Paramètres
                     </Link>
                   </div>
                 </>
               )}
 
-              <div className="px-4 border-t border-gray-100 dark:border-dark-700 mt-2 pt-3">
+              <div className="mx-5 mt-2 border-t border-gray-100 dark:border-dark-700/50" />
+              <div className="px-5 pt-3 pb-2">
                 <button onClick={() => { logout(); navigate('/') }}
-                  className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-500 active:bg-red-50 dark:active:bg-red-900/20 touch-feedback">
+                  className="w-full flex items-center gap-3 px-4 py-3.5 rounded-2xl text-sm text-red-500 bg-red-50/50 dark:bg-red-500/5 active:bg-red-100 dark:active:bg-red-500/10 transition-all duration-150 touch-feedback">
                   <LogOut className="w-5 h-5" /> Déconnexion
                 </button>
               </div>
