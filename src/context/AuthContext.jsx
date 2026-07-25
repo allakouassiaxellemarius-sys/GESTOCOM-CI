@@ -97,16 +97,18 @@ export function AuthProvider({ children }) {
       if (isOTPEnabled(result.id)) {
         const channel = getOTPChannelLib(result.id)
         let sendResult
+        let actualChannel = channel
         if (channel === 'email' && result.email) {
           sendResult = await envoyerEmailOTP(result.id, result.email)
         } else if (result.telephone) {
           sendResult = await envoyerSMSOTP(result.id, result.telephone)
+          actualChannel = 'sms'
         }
         
         if (sendResult?.success) {
-          setPendingOTP({ ...result, channel })
-          setOtpChannel(channel)
-          return { requireOTP: true, channel }
+          setPendingOTP({ ...result, channel: actualChannel })
+          setOtpChannel(actualChannel)
+          return { requireOTP: true, channel: actualChannel }
         }
       }
 
@@ -129,17 +131,19 @@ export function AuthProvider({ children }) {
       if (isOTPEnabled(pending2FA.id)) {
         const channel = getOTPChannelLib(pending2FA.id)
         let sendResult
+        let actualChannel = channel
         if (channel === 'email' && pending2FA.email) {
           sendResult = await envoyerEmailOTP(pending2FA.id, pending2FA.email)
         } else if (pending2FA.telephone) {
           sendResult = await envoyerSMSOTP(pending2FA.id, pending2FA.telephone)
+          actualChannel = 'sms'
         }
         
         if (sendResult?.success) {
-          setPendingOTP({ ...pending2FA, channel })
-          setOtpChannel(channel)
+          setPendingOTP({ ...pending2FA, channel: actualChannel })
+          setOtpChannel(actualChannel)
           setPending2FA(null)
-          return { requireOTP: true, channel }
+          return { requireOTP: true, channel: actualChannel }
         }
       }
       setUser(pending2FA)
@@ -158,7 +162,7 @@ export function AuthProvider({ children }) {
 
   const verifyOTP = async (code) => {
     if (!pendingOTP) return false
-    const type = pendingOTP.channel === 'email' ? 'email' : 'phone'
+    const type = pendingOTP.channel === 'email' ? 'email' : 'sms'
     const result = verifyOTPLib(pendingOTP.id, type, code)
     if (result?.valid) {
       setUser(pendingOTP)
@@ -178,7 +182,7 @@ export function AuthProvider({ children }) {
 
   const resendOTP = async () => {
     if (!pendingOTP) return false
-    const channel = otpChannel || 'email'
+    const channel = pendingOTP.channel || otpChannel || 'email'
     let destination
     if (channel === 'email') {
       destination = pendingOTP.email

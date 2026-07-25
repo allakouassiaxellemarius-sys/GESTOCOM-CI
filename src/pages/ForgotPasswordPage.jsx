@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import { getUserByEmail, setNewPassword, addLog, validatePassword } from '../lib/db'
-import { envoyerEmailOTP, verifierOTP } from '../lib/verification'
+import { envoyerEmailOTP, envoyerSMSOTP, verifierOTP } from '../lib/verification'
 import { normalizePhone, isPhoneValid, formatPhoneDisplay } from '../lib/phone'
 import AuthLayout from '../components/auth/AuthLayout'
 import PasswordInput from '../components/auth/PasswordInput'
@@ -58,7 +58,12 @@ export default function ForgotPasswordPage() {
   const handleSendOTP = async (method) => {
     setVerificationMethod(method); setError(''); setLoading(true)
     try {
-      const result = await envoyerEmailOTP(userId, email.trim().toLowerCase(), method === 'sms' ? phone : null)
+      let result
+      if (method === 'sms' && phone) {
+        result = await envoyerSMSOTP(userId, phone)
+      } else {
+        result = await envoyerEmailOTP(userId, email.trim().toLowerCase())
+      }
       setLoading(false)
       if (result?.success) { setStep(2); setOtpCode(''); setOtpError('') }
       else setError(result?.error || 'Erreur lors de l\'envoi.')
@@ -76,7 +81,12 @@ export default function ForgotPasswordPage() {
 
   const handleResendOTP = async () => {
     setOtpSending(true)
-    const result = await envoyerEmailOTP(userId, email.trim().toLowerCase(), verificationMethod === 'sms' ? phone : null)
+    let result
+    if (verificationMethod === 'sms' && phone) {
+      result = await envoyerSMSOTP(userId, phone)
+    } else {
+      result = await envoyerEmailOTP(userId, email.trim().toLowerCase())
+    }
     setOtpSending(false)
     if (result?.success) { setOtpResendable(false); setOtpCountdown(60); setOtpError('') }
     else setOtpError('Erreur lors du renvoi.')
