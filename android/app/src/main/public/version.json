@@ -1,5 +1,5 @@
 {
-  "version": "1.7.0",
-  "changelog": "Inscription par secteur : chaque compte est lié à un seul secteur d'activité. Le dashboard, la sidebar et les menus s'adaptent automatiquement au secteur du compte.",
+  "version": "1.8.0",
+  "changelog": "Paramètres restructurés par secteur : chaque utilisateur ne voit que les paramètres pertinents à son secteur d'activité. Nouvelles sections Comptabilité, Production, Transport, Santé, Éducation et ONG. Alertes sonores séparées.",
   "zipUrl": "https://gesto-build.vercel.app/app.asar"
 }
