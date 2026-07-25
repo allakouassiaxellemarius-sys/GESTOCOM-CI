@@ -667,12 +667,52 @@ export async function authentifier(nom, motDePasse) {
   // Accept email or username — resolve to user object
   const isEmail = nom.includes('@')
 
+  // Helper: try pulling user data from Firestore when not found locally
+  async function tryCloudFallback() {
+    if (!isEmail) return false
+    try {
+      const { isFirebaseReady } = await import('./firebase')
+      if (!isFirebaseReady()) return false
+      const { pullFromFirestore, restoreDataFromCloud } = await import('./firebaseSync')
+      const cloudData = await pullFromFirestore(nom.toLowerCase().trim())
+      if (cloudData && cloudData.data) {
+        restoreDataFromCloud(cloudData)
+        clearSqlCache()
+        return true
+      }
+    } catch {}
+    return false
+  }
+
   if (dbApi) {
     try {
-      const u = isEmail ? dbApi.getUserByEmail(nom) : null
+      let u = isEmail ? dbApi.getUserByEmail(nom) : null
+      // Cloud fallback: user created on web but not in local SQLite
+      if (!u && isEmail) {
+        const synced = await tryCloudFallback()
+        if (synced) u = dbApi.getUserByEmail(nom)
+      }
       const lookupName = u ? u.nom : nom
       const result = await dbApi.verifyPassword(lookupName, motDePasse)
-      if (!result) { recordFailedAttempt(); addLog('Tentative échouée', `Utilisateur inconnu: ${nom}`); return null }
+      if (!result) {
+        // Second chance: maybe cloud sync brought new data
+        if (isEmail) {
+          const synced2 = await tryCloudFallback()
+          if (synced2) {
+            const u2 = dbApi.getUserByEmail(nom)
+            if (u2) {
+              const retry = await dbApi.verifyPassword(u2.nom, motDePasse)
+              if (retry && retry.id && !retry.failed) {
+                clearLoginAttempts()
+                addLog('Connexion réussie (cloud sync)', nom, retry.id, retry.nom)
+                const adminId = retry.role === 'admin' ? retry.id : (retry.adminId || null)
+                return { id: retry.id, nom: retry.nom, role: retry.role, adminId, email: retry.email, telephone: retry.telephone, secteur: retry.secteur || 'commerce' }
+              }
+            }
+          }
+        }
+        recordFailedAttempt(); addLog('Tentative échouée', `Utilisateur inconnu: ${nom}`); return null
+      }
       if (result.__error) { return { error: result.message || 'Erreur de connexion' } }
       if (result.failed) {
         const locked = recordFailedAttempt()
@@ -689,9 +729,20 @@ export async function authentifier(nom, motDePasse) {
     }
   }
 
-  const u = isEmail
+  let u = isEmail
     ? getAll('users').find(u => u.email === nom)
     : getAll('users').find(u => u.nom === nom)
+
+  // Cloud fallback: user registered on web but mobile has empty localStorage
+  if (!u) {
+    const synced = await tryCloudFallback()
+    if (synced) {
+      u = isEmail
+        ? getAll('users').find(u => u.email === nom)
+        : getAll('users').find(u => u.nom === nom)
+    }
+  }
+
   if (!u) { recordFailedAttempt(); addLog('Tentative échouée', `Utilisateur inconnu: ${nom}`); return null }
 
   if (u.salt && u.motDePasse.length === 64) {
