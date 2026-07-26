@@ -460,36 +460,67 @@ export function getVentes() {
 }
 
 export function vendre(produitId, quantite, options = {}) {
+  // Helper: build sale object from a product (V1 or V2 compat shape)
+  function buildSale(p) {
+    const coutAchat = p.prixCasier / (p.nbUnitesParCasier || 24)
+    const sousTotal = quantite * p.prixUnite
+    const remise = options.remiseType === 'pourcentage' ? Math.round(sousTotal * (options.remise || 0) / 100) : (options.remise || 0)
+    const total = Math.max(0, sousTotal - remise)
+    return { produitId, nomProduit: p.nom, typeProduit: p.type || p.categorie, quantite, prixUnitaire: p.prixUnite, coutAchat, sousTotal, remise, total, modePaiement: options.modePaiement || 'especes', caissier: sanitize(options.caissier || 'Inconnu'), dateVente: new Date().toISOString() }
+  }
+
   if (dbApi) {
     return safeDb(() => {
-      const p = dbApi.getProductById(produitId)
+      let p = dbApi.getProductById(produitId)
+      let isV2 = false
+      if (!p || p.__error) {
+        p = dbApi.getProductV2ById?.(produitId)
+        isV2 = true
+      }
       if (!p || p.__error || p.stockActuel < quantite) return null
-      const coutAchat = p.prixCasier / p.nbUnitesParCasier
-      const sousTotal = quantite * p.prixUnite
-      const remise = options.remiseType === 'pourcentage' ? Math.round(sousTotal * (options.remise || 0) / 100) : (options.remise || 0)
-      const total = Math.max(0, sousTotal - remise)
-      dbApi.updateProductStock(produitId, quantite)
-      const sale = { produitId, nomProduit: p.nom, typeProduit: p.type, quantite, prixUnitaire: p.prixUnite, coutAchat, sousTotal, remise, total, modePaiement: options.modePaiement || 'especes', caissier: sanitize(options.caissier || 'Inconnu'), dateVente: new Date().toISOString() }
+      const sale = buildSale(p)
+      if (isV2) {
+        if (dbApi.updateProductV2Stock) dbApi.updateProductV2Stock(produitId, -quantite)
+      } else {
+        dbApi.updateProductStock(produitId, quantite)
+      }
       const created = dbApi.createVente(sale)
-      addLog('Vente', `${p.nom} x${quantite} = ${(total || 0).toLocaleString('fr-FR')} FCFA`, options.userId, options.caissier)
+      addLog('Vente', `${p.nom} x${quantite} = ${(sale.total || 0).toLocaleString('fr-FR')} FCFA`, options.userId, options.caissier)
       return created
     }, null)
   }
-  const items = getAll('products')
-  const idx = items.findIndex(i => i.id === produitId)
-  if (idx === -1) return null
+
+  // localStorage path: try V1 first, then V2
+  let items = getAll('products')
+  let idx = items.findIndex(i => i.id === produitId)
+  let isV2 = false
+  if (idx === -1) {
+    // Try V2 products
+    const v2items = getAll('products_v2')
+    const v2idx = v2items.findIndex(i => i.id === produitId)
+    if (v2idx !== -1) {
+      const v2p = v2items[v2idx]
+      if (v2p.stockActuel < quantite) return null
+      const sale = buildSale({ ...v2p, prixUnite: v2p.prixVente, type: v2p.categorie })
+      v2items[v2idx] = { ...v2p, stockActuel: v2p.stockActuel - quantite, dateModification: new Date().toISOString() }
+      setAll('products_v2', v2items)
+      const ventes = getAll('ventes')
+      sale.id = nextId(ventes)
+      ventes.push(sale); setAll('ventes', ventes)
+      addLog('Vente', `${v2p.nom} x${quantite} = ${sale.total.toLocaleString('fr-FR')} FCFA`, options.userId, options.caissier)
+      return sale
+    }
+    return null
+  }
   const p = items[idx]
   if (p.stockActuel < quantite) return null
-  const coutAchat = p.prixCasier / p.nbUnitesParCasier
-  const sousTotal = quantite * p.prixUnite
-  const remise = options.remiseType === 'pourcentage' ? Math.round(sousTotal * (options.remise || 0) / 100) : (options.remise || 0)
-  const total = Math.max(0, sousTotal - remise)
+  const sale = buildSale(p)
   items[idx] = { ...p, stockActuel: p.stockActuel - quantite }
   setAll('products', items)
   const ventes = getAll('ventes')
-  const sale = { id: nextId(ventes), produitId, nomProduit: p.nom, typeProduit: p.type, quantite, prixUnitaire: p.prixUnite, coutAchat, sousTotal, remise, total, modePaiement: options.modePaiement || 'especes', caissier: sanitize(options.caissier || 'Inconnu'), dateVente: new Date().toISOString() }
+  sale.id = nextId(ventes)
   ventes.push(sale); setAll('ventes', ventes)
-  addLog('Vente', `${p.nom} x${quantite} = ${total.toLocaleString('fr-FR')} FCFA`, options.userId, options.caissier)
+  addLog('Vente', `${p.nom} x${quantite} = ${sale.total.toLocaleString('fr-FR')} FCFA`, options.userId, options.caissier)
   return sale
 }
 
@@ -527,7 +558,7 @@ export function deleteDepense(id) {
 // ── Fournisseurs ──
 export function getFournisseurs() {
   if (dbApi) return safeDb(() => dbApi.getFournisseurs(), [])
-  return getAll('fournisseurs')
+  return getAll('fournisseurs').sort((a, b) => (a.nom || '').localeCompare(b.nom || '', 'fr'))
 }
 
 export function addFournisseur(f) {
@@ -1060,11 +1091,21 @@ export function addRetour(venteId, quantite, motif, montant, caissier) {
   items.push(retour)
   setAll('retours', items)
 
+  // Restore stock — try V1 first, then V2
   const products = getAll('products')
   const pIdx = products.findIndex(p => p.id === vente.produitId)
   if (pIdx !== -1) {
     products[pIdx].stockActuel += retour.quantite
     setAll('products', products)
+  } else {
+    // Try V2 products
+    const v2items = getAll('products_v2')
+    const v2idx = v2items.findIndex(p => p.id === vente.produitId)
+    if (v2idx !== -1) {
+      v2items[v2idx].stockActuel = (v2items[v2idx].stockActuel || 0) + retour.quantite
+      v2items[v2idx].dateModification = new Date().toISOString()
+      setAll('products_v2', v2items)
+    }
   }
 
   addLog('Retour', `${vente.nomProduit} x${retour.quantite} — ${retour.montant?.toLocaleString('fr-FR')} FCFA`, retour.id, caissier)

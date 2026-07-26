@@ -574,10 +574,12 @@ export function ajusterStock(produitId, nouveauStock, motif, creePar = '') {
 export function transfertStock(produitId, quantite, entrepotSource, entrepotDest, creePar = '') {
   const p = getProductV2(produitId)
   if (!p || p.stockActuel < quantite) return null
+  const stockAvant = p.stockActuel
   sortieStock(produitId, quantite, { motif: `Transfert vers ${entrepotDest}`, creePar })
+  const pAfter = getProductV2(produitId)
   addMouvement({
     produitId, produitNom: p.nom, produitSecteur: p.secteur, type: 'transfert', quantite,
-    quantiteAvant: p.stockActuel, quantiteApres: p.stockActuel - quantite,
+    quantiteAvant: stockAvant, quantiteApres: pAfter?.stockActuel ?? (stockAvant - quantite),
     entrepot: entrepotSource, entrepotDestination: entrepotDest,
     motif: `Transfert ${entrepotSource} → ${entrepotDest}`, creePar,
   })

@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo, useCallback } from 'react'
 import { Link } from 'react-router-dom'
-import { vendre, getProductByBarcode, getVentesSettings } from '../lib/db'
+import { vendre, getProductByBarcode, getVentesSettings, getProductsEnAlerte } from '../lib/db'
 import { getProductsV2, getProductsCompat } from '../lib/stockDb'
 import { normalizePhone } from '../lib/phone'
 import { useAuth } from '../context/AuthContext'
@@ -71,8 +71,8 @@ export default function VentesPage() {
   }
 
   const filtered = products.filter(p => p.nom.toLowerCase().includes(search.toLowerCase()))
-  const bouteilles = filtered.filter(p => p.type === 'bouteille')
-  const canettes = filtered.filter(p => p.type === 'canette')
+  const bouteilles = filtered.filter(p => p.type === 'bouteille' || p.type === 'Bouteille' || p.type === 'Boisson')
+  const canettes = filtered.filter(p => p.type === 'canette' || p.type === 'Canette')
 
   const addToCart = useCallback((p) => {
     if (p.stockActuel < 1) return
