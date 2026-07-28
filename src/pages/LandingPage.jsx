@@ -57,7 +57,7 @@ export default function LandingPage() {
       </div>
 
       {/* Version */}
-      <p className="text-[10px] text-gray-600 pb-4 relative z-10">v1.5.1</p>
+      <p className="text-[10px] text-gray-600 pb-4 relative z-10">v1.8.0</p>
     </div>
   )
 }
