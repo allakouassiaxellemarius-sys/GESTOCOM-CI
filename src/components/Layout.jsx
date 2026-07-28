@@ -12,7 +12,7 @@ import {
   Menu, X, Zap, BarChart3, RefreshCw, Download, Loader,
   History, FileText, ChevronRight, RotateCcw, ClipboardList, MoreHorizontal,
   Landmark, Factory, Heart, GraduationCap, HandHeart, Users,
-  ShieldCheck, Monitor,
+  ShieldCheck, Monitor, Activity,
 } from 'lucide-react'
 import { getProductsEnAlerte } from '../lib/db'
 import SyncStatusBar from './SyncStatusBar'
@@ -251,6 +251,11 @@ export default function Layout({ children }) {
               }`}>
                 <Settings className="w-4 h-4" /> Paramètres
               </Link>
+              <Link to="/app/connexions" className={`flex items-center gap-3 px-4 py-2.5 text-sm transition-colors ${
+                location.pathname === '/app/connexions' ? 'bg-brand-500 text-white' : 'text-gray-400 hover:bg-white/5 hover:text-white'
+              }`}>
+                <Activity className="w-4 h-4" /> Connexions
+              </Link>
             </>
           )}
         </nav>
@@ -438,13 +443,20 @@ export default function Layout({ children }) {
               {user?.role === 'admin' && (
                 <>
                   <div className="px-5 pt-2 pb-1.5 text-[10px] font-bold text-gray-400 dark:text-gray-500 uppercase tracking-[0.08em]">Administration</div>
-                  <div className="px-5 pb-3">
+                  <div className="px-5 pb-3 space-y-1">
                     <Link to="/app/parametres" onClick={() => setShowMoreSheet(false)}
                       className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-50 dark:active:bg-dark-700 transition-all duration-150 touch-feedback">
                       <div className="w-8 h-8 rounded-xl bg-gray-100 dark:bg-dark-600 flex items-center justify-center">
                         <Settings className="w-4 h-4 text-gray-500" />
                       </div>
                       Paramètres
+                    </Link>
+                    <Link to="/app/connexions" onClick={() => setShowMoreSheet(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-2xl text-sm text-gray-700 dark:text-gray-300 active:bg-gray-50 dark:active:bg-dark-700 transition-all duration-150 touch-feedback">
+                      <div className="w-8 h-8 rounded-xl bg-blue-50 dark:bg-blue-500/10 flex items-center justify-center">
+                        <Activity className="w-4 h-4 text-blue-500" />
+                      </div>
+                      Connexions
                     </Link>
                   </div>
                 </>

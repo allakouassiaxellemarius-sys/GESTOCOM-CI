@@ -25,6 +25,7 @@ import DocumentsPage from './pages/DocumentsPage'
 import LogicielsPage from './pages/LogicielsPage'
 import DownloadPage from './pages/DownloadPage'
 import RetoursPage from './pages/RetoursPage'
+import ConnexionsPage from './pages/ConnexionsPage'
 import CommandesPage from './pages/CommandesPage'
 import FinancePage from './pages/FinancePage'
 import IndustriePage from './pages/IndustriePage'
@@ -98,6 +99,7 @@ function AppRoutes() {
       <Route path="/app/documents" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
       <Route path="/app/logiciels" element={<ProtectedRoute><LogicielsPage /></ProtectedRoute>} />
       <Route path="/app/parametres" element={<ProtectedRoute><ParametresPage /></ProtectedRoute>} />
+      <Route path="/app/connexions" element={<ProtectedRoute><ConnexionsPage /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )
