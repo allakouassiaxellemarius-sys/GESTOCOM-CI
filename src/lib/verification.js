@@ -2,6 +2,7 @@
 
 const VERIFICATION_KEY = 'gestocom_verification'
 const OTP_KEY = 'gestocom_otp'
+const API_BASE = 'https://landing-page-gamma-ochre-13.vercel.app'
 
 // ══════════════════════════════════════════════════════════════
 // STATUT DE VÉRIFICATION
@@ -79,7 +80,7 @@ export async function envoyerEmailOTP(userId, email) {
   saveAllOTP(all)
   
   try {
-    const res = await fetch('/api/send-otp', {
+    const res = await fetch(`${API_BASE}/api/send-otp`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
