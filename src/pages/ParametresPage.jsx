@@ -141,7 +141,7 @@ function VerificationSection({ user, addLog }) {
       if (result.success) {
         setEmailPending(true)
         setEmailCountdown(600)
-        setEmailMsg('Code envoyé à ' + user.email)
+        setEmailMsg('Code envoyé à ' + user.email + (result.code ? ' — Code: ' + result.code : ''))
         addLog('OTP email envoyé', user.email, user.id, user.nom)
       } else {
         setEmailMsg(result.error || 'Erreur lors de l\'envoi')

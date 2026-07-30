@@ -19,7 +19,9 @@ export default async function handler(req, res) {
   }
 
   const transporter = nodemailer.createTransport({
-    service: 'gmail',
+    host: 'smtp.gmail.com',
+    port: 465,
+    secure: true,
     auth: {
       user: smtpEmail,
       pass: smtpPass.replace(/\s/g, ''),
@@ -27,10 +29,11 @@ export default async function handler(req, res) {
   })
 
   try {
-    await transporter.sendMail({
+    const info = await transporter.sendMail({
       from: `"GESTOCOM CI" <${smtpEmail}>`,
       to: email,
       subject: subject || 'Code de vérification GESTOCOM CI',
+      text: `Votre code de vérification GESTOCOM CI est : ${code}\n\nCe code expire dans 10 minutes.\n\nSi vous n'avez pas demandé ce code, ignorez cet email.`,
       html: `
         <div style="font-family: Arial, sans-serif; max-width: 480px; margin: 0 auto; padding: 24px;">
           <div style="text-align: center; margin-bottom: 24px;">
@@ -38,7 +41,7 @@ export default async function handler(req, res) {
           </div>
           <div style="background: #f8f9fa; border-radius: 12px; padding: 32px; text-align: center;">
             <p style="font-size: 16px; color: #333; margin-bottom: 8px;">Votre code de vérification</p>
-            <p style="font-size: 36px; font-weight: bold; color: #1a73e8; letter-spacing: 8px; margin: 16px 0;">${code}</p>
+            <p style="font-size: 40px; font-weight: bold; color: #1a73e8; letter-spacing: 10px; margin: 16px 0;">${code}</p>
             <p style="font-size: 13px; color: #666;">Ce code expire dans 10 minutes.</p>
           </div>
           <p style="font-size: 12px; color: #999; text-align: center; margin-top: 24px;">
@@ -48,9 +51,10 @@ export default async function handler(req, res) {
       `,
     })
 
-    return res.status(200).json({ success: true })
+    console.log('Email envoyé avec succès:', info.messageId)
+    return res.status(200).json({ success: true, messageId: info.messageId })
   } catch (err) {
-    console.error('Erreur envoi email:', err.message)
-    return res.status(500).json({ error: "Échec de l'envoi de l'email" })
+    console.error('Erreur envoi email:', err.message, err.code)
+    return res.status(500).json({ error: "Échec de l'envoi de l'email", detail: err.message })
   }
 }

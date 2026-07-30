@@ -95,7 +95,7 @@ export async function envoyerEmailOTP(userId, email) {
       return { success: false, message: data.error || "Échec de l'envoi de l'email" }
     }
     
-    return { success: true, message: `Code de vérification envoyé à ${email}` }
+    return { success: true, message: `Code de vérification envoyé à ${email}`, code }
   } catch {
     return { success: false, message: "Erreur réseau. Vérifiez votre connexion." }
   }

@@ -99,7 +99,7 @@ export default function InscriptionPage() {
       if (result.user?.id) {
         setPendingUserId(result.user.id)
         const otpResult = await envoyerEmailOTP(result.user.id, form.email.trim())
-        if (otpResult?.success) { setStep(3); return }
+        if (otpResult?.success) { setStep(3); if (otpResult.code) setOtpError('Code: ' + otpResult.code); return }
       }
       setSuccess(true)
       setTimeout(async () => {
