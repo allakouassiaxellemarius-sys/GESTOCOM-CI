@@ -168,6 +168,7 @@ export default function LoginPage() {
             <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
               Code à 6 chiffres envoyé par <span className="font-semibold text-green-600 dark:text-green-400">{channelLabel}</span>
             </p>
+            {pendingOTP?.otpCode && <p className="text-xs text-gray-400 mt-1">Code: {pendingOTP.otpCode}</p>}
           </div>
           <AuthError message={otpError} />
           <div className="mb-4">

@@ -106,7 +106,7 @@ export function AuthProvider({ children }) {
         }
         
         if (sendResult?.success) {
-          setPendingOTP({ ...result, channel: actualChannel })
+          setPendingOTP({ ...result, channel: actualChannel, otpCode: sendResult.code })
           setOtpChannel(actualChannel)
           return { requireOTP: true, channel: actualChannel }
         }
