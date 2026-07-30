@@ -164,7 +164,7 @@ export default function Layout({ children }) {
           </div>
           <div>
             <div className="text-sm font-bold text-white">GESTOCOM</div>
-            <div className="text-[10px] text-gold-400">CI v1.8.0</div>
+            <div className="text-[10px] text-gold-400">CI v1.9.0</div>
           </div>
         </div>
         <nav className="flex-1 py-2 overflow-y-auto">
@@ -317,7 +317,7 @@ export default function Layout({ children }) {
         {/* Desktop footer */}
         {!isMobile && (
           <div className="px-4 py-1.5 bg-dark-900 text-gray-400 text-xs flex items-center justify-between">
-            <span>v1.8.0 — {user?.nom} ({user?.role})</span>
+            <span>v1.9.0 — {user?.nom} ({user?.role})</span>
             <span>Données stockées localement</span>
           </div>
         )}

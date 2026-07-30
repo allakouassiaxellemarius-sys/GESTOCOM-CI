@@ -1,0 +1,6 @@
+export { default as FinanceScreen } from '../../pages/FinancePage'
+export { default as IndustryScreen } from '../../pages/IndustriePage'
+export { default as TransportScreen } from '../../pages/TransportPage'
+export { default as HealthScreen } from '../../pages/SantePage'
+export { default as EducationScreen } from '../../pages/EducationPage'
+export { default as NGOScreen } from '../../pages/ONGPage'

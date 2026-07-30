@@ -6,38 +6,18 @@ import { DeviceProvider } from './context/DeviceContext'
 import { NetworkProvider } from './context/NetworkContext'
 import { SyncProvider } from './context/SyncContext'
 import ErrorBoundary from './components/ErrorBoundary'
-import LandingPage from './pages/LandingPage'
-import LoginPage from './pages/LoginPage'
-import InscriptionPage from './pages/InscriptionPage'
 import Layout from './components/Layout'
-import DashboardPage from './pages/DashboardPage'
-import StockPage from './pages/StockPage'
-import VentesPage from './pages/VentesPage'
-import HistoriqueVentesPage from './pages/HistoriqueVentesPage'
-import RecusPage from './pages/RecusPage'
-import RapportsVentesPage from './pages/RapportsVentesPage'
-import ProfitPage from './pages/ProfitPage'
-import DepensesPage from './pages/DepensesPage'
-import FournisseursPage from './pages/FournisseursPage'
-import IAPage from './pages/IAPage'
-import ParametresPage from './pages/ParametresPage'
-import DocumentsPage from './pages/DocumentsPage'
-import LogicielsPage from './pages/LogicielsPage'
-import DownloadPage from './pages/DownloadPage'
-import RetoursPage from './pages/RetoursPage'
-import ConnexionsPage from './pages/ConnexionsPage'
-import CommandesPage from './pages/CommandesPage'
-import FinancePage from './pages/FinancePage'
-import IndustriePage from './pages/IndustriePage'
-import TransportPage from './pages/TransportPage'
-import SantePage from './pages/SantePage'
-import EducationPage from './pages/EducationPage'
-import ONGPage from './pages/ONGPage'
-import LegalPage from './pages/LegalPage'
-import ForgotPasswordPage from './pages/ForgotPasswordPage'
-import VerifyReceiptPage from './pages/VerifyReceiptPage'
-import StockInventairePage from './pages/StockInventairePage'
-import SyncPage from './pages/SyncPage'
+import {
+  LandingScreen, LoginScreen, RegisterScreen, ForgotPasswordScreen,
+  DownloadScreen, LegalScreen, VerifyReceiptScreen, SyncScreen,
+  DashboardScreen, StockScreen, InventoryScreen, SalesScreen,
+  SalesHistoryScreen, ReceiptsScreen, ReportsScreen, ProfitScreen,
+  ExpensesScreen, SuppliersScreen, PurchaseOrdersScreen, ReturnsScreen,
+  ConnectionsScreen,
+  FinanceScreen, IndustryScreen, TransportScreen, HealthScreen,
+  EducationScreen, NGOScreen,
+  AIScreen, DocumentsScreen, SoftwareScreen, SettingsScreen,
+} from './screens'
 import './index.css'
 
 function ProtectedRoute({ children }) {
@@ -50,56 +30,56 @@ function AppRoutes() {
   const { user } = useAuth()
   return (
     <Routes>
-      <Route path="/" element={user ? <Navigate to="/app" replace /> : <LandingPage />} />
-      <Route path="/download" element={<DownloadPage />} />
-      <Route path="/login" element={user ? <Navigate to="/app" replace /> : <LoginPage />} />
-      <Route path="/mot-de-passe-oublie" element={user ? <Navigate to="/app" replace /> : <ForgotPasswordPage />} />
-      <Route path="/inscription" element={user ? <Navigate to="/app" replace /> : <InscriptionPage />} />
-      <Route path="/mentions-legales" element={<LegalPage type="mentions-legales" />} />
-      <Route path="/cgu" element={<LegalPage type="cgu" />} />
-      <Route path="/confidentialite" element={<LegalPage type="confidentialite" />} />
-      <Route path="/verify/:numero" element={<VerifyReceiptPage />} />
-      <Route path="/verify" element={<VerifyReceiptPage />} />
-      <Route path="/sync" element={<SyncPage />} />
+      <Route path="/" element={user ? <Navigate to="/app" replace /> : <LandingScreen />} />
+      <Route path="/download" element={<DownloadScreen />} />
+      <Route path="/login" element={user ? <Navigate to="/app" replace /> : <LoginScreen />} />
+      <Route path="/mot-de-passe-oublie" element={user ? <Navigate to="/app" replace /> : <ForgotPasswordScreen />} />
+      <Route path="/inscription" element={user ? <Navigate to="/app" replace /> : <RegisterScreen />} />
+      <Route path="/mentions-legales" element={<LegalScreen type="mentions-legales" />} />
+      <Route path="/cgu" element={<LegalScreen type="cgu" />} />
+      <Route path="/confidentialite" element={<LegalScreen type="confidentialite" />} />
+      <Route path="/verify/:numero" element={<VerifyReceiptScreen />} />
+      <Route path="/verify" element={<VerifyReceiptScreen />} />
+      <Route path="/sync" element={<SyncScreen />} />
 
       {/* Commerce */}
-      <Route path="/app" element={<ProtectedRoute><DashboardPage /></ProtectedRoute>} />
-      <Route path="/app/stock" element={<ProtectedRoute><StockPage /></ProtectedRoute>} />
-      <Route path="/app/stock/inventaire" element={<ProtectedRoute><StockInventairePage /></ProtectedRoute>} />
-      <Route path="/app/ventes" element={<ProtectedRoute><VentesPage /></ProtectedRoute>} />
-      <Route path="/app/ventes/historique" element={<ProtectedRoute><HistoriqueVentesPage /></ProtectedRoute>} />
-      <Route path="/app/ventes/recus" element={<ProtectedRoute><RecusPage /></ProtectedRoute>} />
-      <Route path="/app/ventes/rapports" element={<ProtectedRoute><RapportsVentesPage /></ProtectedRoute>} />
-      <Route path="/app/profit" element={<ProtectedRoute><ProfitPage /></ProtectedRoute>} />
-      <Route path="/app/depenses" element={<ProtectedRoute><DepensesPage /></ProtectedRoute>} />
-      <Route path="/app/fournisseurs" element={<ProtectedRoute><FournisseursPage /></ProtectedRoute>} />
-      <Route path="/app/fournisseurs/commandes" element={<ProtectedRoute><CommandesPage /></ProtectedRoute>} />
-      <Route path="/app/retours" element={<ProtectedRoute><RetoursPage /></ProtectedRoute>} />
+      <Route path="/app" element={<ProtectedRoute><DashboardScreen /></ProtectedRoute>} />
+      <Route path="/app/stock" element={<ProtectedRoute><StockScreen /></ProtectedRoute>} />
+      <Route path="/app/stock/inventaire" element={<ProtectedRoute><InventoryScreen /></ProtectedRoute>} />
+      <Route path="/app/ventes" element={<ProtectedRoute><SalesScreen /></ProtectedRoute>} />
+      <Route path="/app/ventes/historique" element={<ProtectedRoute><SalesHistoryScreen /></ProtectedRoute>} />
+      <Route path="/app/ventes/recus" element={<ProtectedRoute><ReceiptsScreen /></ProtectedRoute>} />
+      <Route path="/app/ventes/rapports" element={<ProtectedRoute><ReportsScreen /></ProtectedRoute>} />
+      <Route path="/app/profit" element={<ProtectedRoute><ProfitScreen /></ProtectedRoute>} />
+      <Route path="/app/depenses" element={<ProtectedRoute><ExpensesScreen /></ProtectedRoute>} />
+      <Route path="/app/fournisseurs" element={<ProtectedRoute><SuppliersScreen /></ProtectedRoute>} />
+      <Route path="/app/fournisseurs/commandes" element={<ProtectedRoute><PurchaseOrdersScreen /></ProtectedRoute>} />
+      <Route path="/app/retours" element={<ProtectedRoute><ReturnsScreen /></ProtectedRoute>} />
 
       {/* Finance */}
-      <Route path="/app/finance" element={<ProtectedRoute><FinancePage /></ProtectedRoute>} />
+      <Route path="/app/finance" element={<ProtectedRoute><FinanceScreen /></ProtectedRoute>} />
 
       {/* Industrie */}
-      <Route path="/app/industrie" element={<ProtectedRoute><IndustriePage /></ProtectedRoute>} />
+      <Route path="/app/industrie" element={<ProtectedRoute><IndustryScreen /></ProtectedRoute>} />
 
       {/* Transport */}
-      <Route path="/app/transport" element={<ProtectedRoute><TransportPage /></ProtectedRoute>} />
+      <Route path="/app/transport" element={<ProtectedRoute><TransportScreen /></ProtectedRoute>} />
 
       {/* Santé */}
-      <Route path="/app/sante" element={<ProtectedRoute><SantePage /></ProtectedRoute>} />
+      <Route path="/app/sante" element={<ProtectedRoute><HealthScreen /></ProtectedRoute>} />
 
       {/* Éducation */}
-      <Route path="/app/education" element={<ProtectedRoute><EducationPage /></ProtectedRoute>} />
+      <Route path="/app/education" element={<ProtectedRoute><EducationScreen /></ProtectedRoute>} />
 
       {/* ONG */}
-      <Route path="/app/ong" element={<ProtectedRoute><ONGPage /></ProtectedRoute>} />
+      <Route path="/app/ong" element={<ProtectedRoute><NGOScreen /></ProtectedRoute>} />
 
       {/* Transversal */}
-      <Route path="/app/ia" element={<ProtectedRoute><IAPage /></ProtectedRoute>} />
-      <Route path="/app/documents" element={<ProtectedRoute><DocumentsPage /></ProtectedRoute>} />
-      <Route path="/app/logiciels" element={<ProtectedRoute><LogicielsPage /></ProtectedRoute>} />
-      <Route path="/app/parametres" element={<ProtectedRoute><ParametresPage /></ProtectedRoute>} />
-      <Route path="/app/connexions" element={<ProtectedRoute><ConnexionsPage /></ProtectedRoute>} />
+      <Route path="/app/ia" element={<ProtectedRoute><AIScreen /></ProtectedRoute>} />
+      <Route path="/app/documents" element={<ProtectedRoute><DocumentsScreen /></ProtectedRoute>} />
+      <Route path="/app/logiciels" element={<ProtectedRoute><SoftwareScreen /></ProtectedRoute>} />
+      <Route path="/app/parametres" element={<ProtectedRoute><SettingsScreen /></ProtectedRoute>} />
+      <Route path="/app/connexions" element={<ProtectedRoute><ConnectionsScreen /></ProtectedRoute>} />
       <Route path="*" element={<Navigate to="/" replace />} />
     </Routes>
   )

@@ -1,0 +1,5 @@
+export { default as LogicielCard } from '../LogicielCard'
+export { default as LogicielFormModal } from '../LogicielFormModal'
+export { default as LicenceModal } from '../LicenceModal'
+export { default as VersionModal } from '../VersionModal'
+export { default as DeploiementModal } from '../DeploiementModal'

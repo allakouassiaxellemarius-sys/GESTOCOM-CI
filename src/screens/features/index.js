@@ -1,0 +1,5 @@
+export { default as AIScreen } from '../../pages/IAPage'
+export { default as DocumentsScreen } from '../../pages/DocumentsPage'
+export { default as SoftwareScreen } from '../../pages/LogicielsPage'
+export { default as SettingsScreen } from '../../pages/ParametresPage'
+export { default as ThemeScreen } from '../../pages/ThemePage'

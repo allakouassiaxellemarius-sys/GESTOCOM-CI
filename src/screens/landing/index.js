@@ -1,0 +1,5 @@
+export { default as LandingScreen } from '../../pages/LandingPage'
+export { default as DownloadScreen } from '../../pages/DownloadPage'
+export { default as LegalScreen } from '../../pages/LegalPage'
+export { default as VerifyReceiptScreen } from '../../pages/VerifyReceiptPage'
+export { default as SyncScreen } from '../../pages/SyncPage'
