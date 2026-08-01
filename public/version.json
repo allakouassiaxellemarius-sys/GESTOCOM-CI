@@ -1,5 +1,5 @@
 {
-  "version": "1.9.0",
-  "changelog": "Architecture refactorée : système de dossiers organisé (screens/, features/, services/), ParametresPage allégée de 400 lignes, barrel exports pour imports propres.",
+  "version": "1.9.1",
+  "changelog": "Correctif: icônes navigation mobile restaurées.
   "zipUrl": "https://gesto-build.vercel.app/app.asar"
 }

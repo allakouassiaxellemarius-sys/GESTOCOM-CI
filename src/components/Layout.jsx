@@ -17,11 +17,13 @@ import {
 import { getProductsEnAlerte } from '../lib/db'
 import SyncStatusBar from './SyncStatusBar'
 
-const ICONS = { LayoutDashboard, Package, ShoppingCart, TrendingUp, Receipt, Truck, Settings, BarChart3, History, FileText, RotateCcw, ClipboardList, Landmark, Factory, Heart, GraduationCap, HandHeart, Users }
+const ICONS = { LayoutDashboard, Package, ShoppingCart, TrendingUp, Receipt, Truck, Settings, BarChart3, History, FileText, RotateCcw, ClipboardList, Landmark, Factory, Heart, GraduationCap, HandHeart, Users, MoreHorizontal }
 
-const NavIcon = ({ icon: Icon, size = 22, ...props }) => (
-  <Icon size={size} strokeWidth={1.8} {...props} />
-)
+const NavIcon = ({ icon, size = 22, ...props }) => {
+  const Icon = typeof icon === 'string' ? ICONS[icon] : icon
+  if (!Icon) return null
+  return <Icon size={size} strokeWidth={1.8} {...props} />
+}
 
 const SECTOR_NAV = {
   commerce: {
@@ -164,7 +166,7 @@ export default function Layout({ children }) {
           </div>
           <div>
             <div className="text-sm font-bold text-white">GESTOCOM</div>
-            <div className="text-[10px] text-gold-400">CI v1.9.0</div>
+            <div className="text-[10px] text-gold-400">CI v1.9.1</div>
           </div>
         </div>
         <nav className="flex-1 py-2 overflow-y-auto">
@@ -317,7 +319,7 @@ export default function Layout({ children }) {
         {/* Desktop footer */}
         {!isMobile && (
           <div className="px-4 py-1.5 bg-dark-900 text-gray-400 text-xs flex items-center justify-between">
-            <span>v1.9.0 — {user?.nom} ({user?.role})</span>
+            <span>v1.9.1 — {user?.nom} ({user?.role})</span>
             <span>Données stockées localement</span>
           </div>
         )}

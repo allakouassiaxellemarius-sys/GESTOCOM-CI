@@ -1,5 +1,5 @@
 {
-  "version": "1.8.0",
-  "changelog": "Paramètres restructurés par secteur : chaque utilisateur ne voit que les paramètres pertinents à son secteur d'activité. Nouvelles sections Comptabilité, Production, Transport, Santé, Éducation et ONG. Alertes sonores séparées.",
+  "version": "1.9.1",
+  "changelog": "Correctif: icônes navigation mobile restaurées.
   "zipUrl": "https://gesto-build.vercel.app/app.asar"
 }
