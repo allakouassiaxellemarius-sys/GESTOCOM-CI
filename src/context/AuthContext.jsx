@@ -1,7 +1,7 @@
 import { createContext, useContext, useState, useEffect, useCallback } from 'react'
 import { authentifier as dbAuth, changerMotDePasse as dbChangePw, addLog, ensureDefaultAdmin, setCurrentAdminId } from '../lib/db'
 import { is2FAEnabled, verify2FACode } from '../lib/tfa'
-import { envoyerEmailOTP, envoyerSMSOTP, verifierOTP as verifyOTPLib, getOTPChannel as getOTPChannelLib, isOTPEnabled, renvoyerOTP } from '../lib/verification'
+import { envoyerEmailOTP, envoyerSMSOTP, verifierOTP as verifyOTPLib, getOTPChannel as getOTPChannelLib, isOTPEnabled, renvoyerOTP, isEmailVerified, isPhoneVerified } from '../lib/verification'
 import { isFirebaseReady } from '../lib/firebase'
 import { pullFromFirestore, restoreDataFromCloud, pushToFirestore } from '../lib/firebaseSync'
 import { useSync } from './SyncContext'
@@ -93,9 +93,12 @@ export function AuthProvider({ children }) {
         return { require2FA: true }
       }
 
-      // Vérifier si OTP est activé pour cet utilisateur
-      if (isOTPEnabled(result.id)) {
-        const channel = getOTPChannelLib(result.id)
+      // Vérifier si OTP est activé pour cet utilisateur (sauf si déjà vérifié)
+      const channel = getOTPChannelLib(result.id)
+      const verified = channel === 'email'
+        ? isEmailVerified(result.id, result.email)
+        : isPhoneVerified(result.id, result.telephone)
+      if (isOTPEnabled(result.id) && !verified) {
         let sendResult
         let actualChannel = channel
         if (channel === 'email' && result.email) {
@@ -127,9 +130,12 @@ export function AuthProvider({ children }) {
     if (!pending2FA) return false
     const ok = await verify2FACode(pending2FA.id, code)
     if (ok) {
-      // Vérifier si OTP est activé après 2FA
-      if (isOTPEnabled(pending2FA.id)) {
-        const channel = getOTPChannelLib(pending2FA.id)
+      // Vérifier si OTP est activé après 2FA (sauf si déjà vérifié)
+      const channel = getOTPChannelLib(pending2FA.id)
+      const verified = channel === 'email'
+        ? isEmailVerified(pending2FA.id, pending2FA.email)
+        : isPhoneVerified(pending2FA.id, pending2FA.telephone)
+      if (isOTPEnabled(pending2FA.id) && !verified) {
         let sendResult
         let actualChannel = channel
         if (channel === 'email' && pending2FA.email) {

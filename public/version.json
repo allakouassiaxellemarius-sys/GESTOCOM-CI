@@ -1,5 +1,5 @@
 {
-  "version": "1.9.1",
-  "changelog": "Correctif: icônes navigation mobile restaurées.
+  "version": "1.9.2",
+  "changelog": "Fix: OTP connexion non exigé si email déjà vérifié. Statut vérifié synchronisé au cloud.
   "zipUrl": "https://gesto-build.vercel.app/app.asar"
 }

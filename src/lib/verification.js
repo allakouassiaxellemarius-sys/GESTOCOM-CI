@@ -8,36 +8,53 @@ const API_BASE = 'https://landing-page-gamma-ochre-13.vercel.app'
 // STATUT DE VÉRIFICATION
 // ══════════════════════════════════════════════════════════════
 
-function getAllVerifications() {
+export function getAllVerifications() {
   try {
     return JSON.parse(localStorage.getItem(VERIFICATION_KEY) || '{}')
   } catch { return {} }
 }
 
-function saveAllVerifications(data) {
+export function saveAllVerifications(data) {
   try {
     localStorage.setItem(VERIFICATION_KEY, JSON.stringify(data))
   } catch {}
 }
 
-export function getVerificationStatus(userId) {
+function emailKey(email) { return email ? 'email_' + String(email).toLowerCase().trim() : null }
+function phoneKey(phone) { return phone ? 'phone_' + String(phone).toLowerCase().trim() : null }
+
+export function getVerificationStatus(userId, email, phone) {
   const all = getAllVerifications()
+  const ek = emailKey(email)
+  const pk = phoneKey(phone)
+  if (ek && all[ek]) return all[ek]
+  if (pk && all[pk]) return all[pk]
   return all[userId] || { email: false, phone: false, identity: false }
 }
 
-export function setVerificationStatus(userId, type, verified) {
+export function setVerificationStatus(userId, type, verified, email, phone) {
   const all = getAllVerifications()
   if (!all[userId]) all[userId] = { email: false, phone: false, identity: false }
   all[userId][type] = verified
+  // Miroir vers une clé stable (email/téléphone) pour survivre aux changements d'id
+  const ek = emailKey(email)
+  const pk = phoneKey(phone)
+  if (type === 'email' && ek) {
+    if (!all[ek]) all[ek] = { ...all[userId] }
+    all[ek].email = verified
+  } else if (type === 'phone' && pk) {
+    if (!all[pk]) all[pk] = { ...all[userId] }
+    all[pk].phone = verified
+  }
   saveAllVerifications(all)
 }
 
-export function isEmailVerified(userId) {
-  return getVerificationStatus(userId).email === true
+export function isEmailVerified(userId, email) {
+  return getVerificationStatus(userId, email).email === true
 }
 
-export function isPhoneVerified(userId) {
-  return getVerificationStatus(userId).phone === true
+export function isPhoneVerified(userId, phone) {
+  return getVerificationStatus(userId, phone).phone === true
 }
 
 export function isIdentityVerified(userId) {
@@ -154,7 +171,7 @@ export function verifierOTP(userId, type, inputCode) {
   // Code valide — marquer comme vérifié
   delete all[key]
   saveAllOTP(all)
-  setVerificationStatus(userId, type === 'email' ? 'email' : 'phone', true)
+  setVerificationStatus(userId, type === 'email' ? 'email' : 'phone', true, otp.email, otp.phone)
   
   return { valid: true }
 }
@@ -209,6 +226,8 @@ function saveAllOTPConfig(data) {
   } catch {}
 }
 
+export { getAllOTPConfig, saveAllOTPConfig }
+
 export function getOTPChannel(userId) {
   const config = getAllOTPConfig()
   return config[userId]?.channel || 'email' // Défaut: email
@@ -223,7 +242,7 @@ export function setOTPChannel(userId, channel) {
 
 export function isOTPEnabled(userId) {
   const config = getAllOTPConfig()
-  return config[userId]?.enabled !== false // Défaut: activé
+  return config[userId]?.enabled === true // Défaut: désactivé (opt-in)
 }
 
 export function setOTPEnabled(userId, enabled) {

@@ -11,6 +11,7 @@ import { getProductsV2, getMouvements, getEntrepots, getLots } from './stockDb'
 import { getDocuments } from './documentsDb'
 import { getAllLogicielsData, restoreLogicielsData } from './logicielsDb'
 import { getExercices, getEcritures, getJournaux, getRapprochements, getLettrages } from './financeDb'
+import { getAllVerifications, saveAllVerifications, getAllOTPConfig, saveAllOTPConfig } from './verification'
 
 export function collectAllData(adminId) {
   return {
@@ -59,6 +60,8 @@ export function collectAllData(adminId) {
       enseignants: getAll('edu_enseignants'),
     },
     ong: getAll('ong'),
+    verification: getAllVerifications(),
+    otpConfig: getAllOTPConfig(),
     settings: {
       company: getCompanySettings(),
       stock: getStockSettings(),
@@ -185,6 +188,31 @@ export function restoreDataFromCloud(cloudData) {
     if (d.settings.ventes) setSetting('ventes_settings', d.settings.ventes)
     if (d.settings.clients) setSetting('clients_settings', d.settings.clients)
     if (d.settings.rapports) setSetting('rapports_settings', d.settings.rapports)
+  }
+
+  // Statut de vérification (monotone: une fois vérifié, reste vérifié)
+  const cloudVer = d.verification || {}
+  if (Object.keys(cloudVer).length > 0) {
+    const localVer = getAllVerifications()
+    for (const [k, v] of Object.entries(cloudVer)) {
+      const cur = localVer[k] || {}
+      localVer[k] = {
+        email: !!(cur.email || v.email),
+        phone: !!(cur.phone || v.phone),
+        identity: !!(cur.identity || v.identity),
+      }
+    }
+    saveAllVerifications(localVer)
+  }
+
+  // Configuration OTP (préserver la config locale si présente)
+  const cloudCfg = d.otpConfig || {}
+  if (Object.keys(cloudCfg).length > 0) {
+    const localCfg = getAllOTPConfig()
+    for (const [k, v] of Object.entries(cloudCfg)) {
+      if (!localCfg[k]) localCfg[k] = v
+    }
+    saveAllOTPConfig(localCfg)
   }
 
   return {

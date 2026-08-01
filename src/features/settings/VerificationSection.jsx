@@ -115,8 +115,8 @@ export default function VerificationSection({ user, addLog }) {
     addLog('Canal OTP modifié', ch, user.id, user.nom)
   }
 
-  const emailOk = isEmailVerified(user?.id)
-  const phoneOk = isPhoneVerified(user?.id)
+  const emailOk = isEmailVerified(user?.id, user?.email)
+  const phoneOk = isPhoneVerified(user?.id, user?.telephone)
 
   return (
     <div className="space-y-4">
