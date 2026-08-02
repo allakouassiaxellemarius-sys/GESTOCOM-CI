@@ -7,7 +7,7 @@
     "email": "contact@gestocom.ci"
   },
   "private": true,
-  "version": "1.9.3",
+  "version": "1.9.4",
   "main": "electron/main.js",
   "scripts": {
     "dev": "vite",

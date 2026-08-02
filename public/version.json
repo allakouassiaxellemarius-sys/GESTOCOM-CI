@@ -1,5 +1,5 @@
 {
-  "version": "1.9.3",
-  "changelog": "Nouveau logo officiel (GESTOCOM) sur l'APK + refactor de l'ajout des produits (module features/products, validation inline).
+  "version": "1.9.4",
+  "changelog": "Fix enregistrement des produits (ReferenceError generateReference) + correction doublons à la création.",
   "zipUrl": "https://gesto-build.vercel.app/app.asar"
 }

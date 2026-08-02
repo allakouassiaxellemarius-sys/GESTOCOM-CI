@@ -385,10 +385,13 @@ export function getProductV2ByBarcode(barcode) {
 export function addProductV2(p) {
   if (dbApi) { return safeDb(() => dbApi.createProductV2(sanitizeObj(p)), null) }
   const items = getAll('products_v2')
-  p.id = nextId(items)
+  p.id = p.id || nextId(items)
   p.dateCreation = p.dateCreation || new Date().toISOString()
   p.dateModification = new Date().toISOString()
-  items.push(sanitizeObj(p))
+  const idx = items.findIndex(i => i.id === p.id)
+  const clean = sanitizeObj(p)
+  if (idx === -1) items.push(clean)
+  else items[idx] = clean
   setAll('products_v2', items)
   addLog('Produit V2 ajouté', `${p.nom}`, p.id)
   return p

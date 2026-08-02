@@ -39,11 +39,15 @@ function generateReference(secteur, categorie, existingItems) {
 // ══════════════════════════════════════════════════════════════
 // CONFIG DÉPLACÉE VERS src/features/products/config/
 // (sectorCatalog.js, categories.js, fieldSchema.js)
-// Réexportés ici pour compatibilité avec les anciens importeurs.
+// Importée localement (utilisée par generateReference / getRapportSaisonnier)
+// puis réexportée pour compatibilité avec les anciens importeurs.
 // ══════════════════════════════════════════════════════════════
-export { SECTEURS_COMMERCE, getSecteurById, SECTEUR_PREFIX_REFERENCE } from '../features/products/config/sectorCatalog'
-export { UNITES, CATEGORIES_SECTOR, CATEGORY_ICONS, getCategories, getUnites } from '../features/products/config/categories'
-export { SECTOR_FIELDS, CATEGORY_FIELDS, getSectorFields, getCategoryFields } from '../features/products/config/fieldSchema'
+import { SECTEURS_COMMERCE, getSecteurById, SECTEUR_PREFIX_REFERENCE } from '../features/products/config/sectorCatalog'
+import { UNITES, CATEGORIES_SECTOR, CATEGORY_ICONS, getCategories, getUnites } from '../features/products/config/categories'
+import { SECTOR_FIELDS, CATEGORY_FIELDS, getSectorFields, getCategoryFields } from '../features/products/config/fieldSchema'
+export { SECTEURS_COMMERCE, getSecteurById, SECTEUR_PREFIX_REFERENCE }
+export { UNITES, CATEGORIES_SECTOR, CATEGORY_ICONS, getCategories, getUnites }
+export { SECTOR_FIELDS, CATEGORY_FIELDS, getSectorFields, getCategoryFields }
 
 // ══════════════════════════════════════════════════════════════
 // PRODUITS V2 — SCHÉMA UNIVERSEL AVEC CHAMPS SECTORIELS
