@@ -11,6 +11,7 @@ export function getCurrentAdminId() { return _currentAdminId }
 function clearSqlCache() {
   for (const k of Object.keys(sqlCache)) delete sqlCache[k]
   for (const k of Object.keys(sqlSettingsCache)) delete sqlSettingsCache[k]
+  sqlTablesLoaded = new Set()
 }
 
 function getKey(name) {
@@ -45,6 +46,8 @@ function safeDb(fn, fallback) {
 let sqlReady = false
 const sqlCache = {}
 const sqlSettingsCache = {}
+let sqlTablesLoaded = new Set()
+let preInitDirty = new Set()
 
 export function isSqliteReady() { return sqlReady }
 export function getSqlCache(name) {
@@ -62,13 +65,28 @@ export async function loadSqliteCache(sqlite) {
     'logiciels_deploiements', 'logiciels_categories',
   ]
   for (const t of tables) {
+    if (preInitDirty.has(t)) {
+      // Modified before SQLite was ready: keep the in-memory state
+      // and push it to SQLite instead of overwriting with the stale copy.
+      try { await sqlite.sqlReplaceTable(t, sqlCache[t]) } catch {}
+      preInitDirty.delete(t)
+      sqlTablesLoaded.add(t)
+      continue
+    }
     try {
       const rows = await sqlite.sqlGetAll(t)
-      sqlCache[t] = rows.map(row => rowToJs(row))
+      sqlCache[t] = sqlite.isGenericTable(t) ? rows : rows.map(rowToJs)
     } catch {
       sqlCache[t] = []
     }
+    sqlTablesLoaded.add(t)
   }
+  // Any other table written before init (modules, etc.)
+  for (const name of [...preInitDirty]) {
+    try { await sqlite.sqlReplaceTable(name, sqlCache[name]) } catch {}
+    sqlTablesLoaded.add(name)
+  }
+  preInitDirty.clear()
   // Load settings
   const settingsKeys = ['company', 'stock_settings', 'ventes_settings', 'clients_settings', 'rapports_settings', 'login_attempts']
   for (const k of settingsKeys) {
@@ -116,31 +134,49 @@ let sqliteModule = null
 export function setSqliteModule(m) { sqliteModule = m }
 
 export function getAll(name) {
-  if (sqlReady && sqlCache[name] && sqlCache[name].length > 0) return sqlCache[name]
+  if (sqlReady && sqlTablesLoaded.has(name)) return sqlCache[name]
   try { return JSON.parse(localStorage.getItem(getKey(name)) || '[]') } catch { return [] }
 }
 
 export function setAll(name, data) {
   sqlCache[name] = data
   try { localStorage.setItem(getKey(name), JSON.stringify(data)) } catch {}
-  // Write-through to SQLite
+  // Write-through to SQLite (coalesced + atomic)
   if (sqlReady && sqliteModule) {
-    syncTableToSqlite(name, data).catch(() => {})
+    sqlTablesLoaded.add(name)
+    scheduleSqliteWrite(name, data)
+  } else {
+    preInitDirty.add(name)
   }
 }
 
-async function syncTableToSqlite(name, data) {
+// ── Coalesced / serialized SQLite write-through ──
+const _pending = new Map()
+const _chains = new Map()
+let _flushQueued = false
+
+function scheduleSqliteWrite(name, data) {
+  _pending.set(name, data)
+  if (_flushQueued) return
+  _flushQueued = true
+  queueMicrotask(flushPendingWrites)
+}
+
+function flushPendingWrites() {
+  _flushQueued = false
   if (!sqliteModule?.isSQLiteAvailable()) return
-  const { sqlRun, sqlQuery } = sqliteModule
-  // Delete all then re-insert (simple strategy for small datasets)
-  await sqlRun(`DELETE FROM ${name}`)
-  for (const item of data) {
-    const row = jsToRow(item)
-    const keys = Object.keys(row)
-    const placeholders = keys.map(() => '?').join(',')
-    const vals = keys.map(k => row[k])
-    await sqlRun(`INSERT INTO ${name} (${keys.join(',')}) VALUES (${placeholders})`, vals)
+  const entries = [..._pending]
+  _pending.clear()
+  for (const [name, data] of entries) {
+    const prev = _chains.get(name) || Promise.resolve()
+    const next = prev.then(() => sqliteModule.sqlReplaceTable(name, data)).catch(() => {})
+    _chains.set(name, next)
   }
+}
+
+export function flushSqlite() {
+  if (_flushQueued) flushPendingWrites()
+  return Promise.all([..._chains.values()]).catch(() => {})
 }
 
 function getSettings(key) {

@@ -26,12 +26,17 @@ if ('serviceWorker' in navigator) {
     const platform = Capacitor.getPlatform()
     if (platform !== 'electron' && platform !== 'web') {
       const sqlDb = await import('./lib/sqlDb.js')
-      const { loadSqliteCache, setSqliteModule } = await import('./lib/db.js')
+      const { loadSqliteCache, setSqliteModule, flushSqlite } = await import('./lib/db.js')
       setSqliteModule(sqlDb)
       const ok = await sqlDb.initSQLite()
       if (ok) {
         await sqlDb.migrateLocalStorage()
         await loadSqliteCache(sqlDb)
+        // Flush pending SQLite writes when the app goes to background
+        const doFlush = () => { flushSqlite() }
+        document.addEventListener('visibilitychange', doFlush)
+        window.addEventListener('pagehide', doFlush)
+        setInterval(doFlush, 30000)
       }
     }
   } catch {}

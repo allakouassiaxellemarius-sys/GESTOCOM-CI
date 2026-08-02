@@ -1,5 +1,5 @@
 {
-  "version": "1.9.4",
-  "changelog": "Fix enregistrement des produits (ReferenceError generateReference) + correction doublons à la création.",
+  "version": "1.9.5",
+  "changelog": "Base de données SQLite durable sur mobile : écritures atomiques transactionnelles, flush automatique en arrière-plan, tables génériques pour tous les modules.",
   "zipUrl": "https://gesto-build.vercel.app/app.asar"
 }
