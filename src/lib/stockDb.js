@@ -30,171 +30,20 @@ function generateBarcodeV2(productId) {
 }
 
 function generateReference(secteur, categorie, existingItems) {
-  const secteurPrefix = {
-    detail: 'DET', alimentaire: 'ALI', industriel: 'IND', pharmaceutique: 'PHAR',
-    mode: 'MOD', high_tech: 'TECH', logistique: 'LOG', educatif: 'EDU',
-  }
-  const prefix = secteurPrefix[secteur] || 'PRD'
+  const prefix = SECTEUR_PREFIX_REFERENCE[secteur] || 'PRD'
   const catPrefix = categorie ? categorie.slice(0, 3).toUpperCase() : ''
   const seq = existingItems.length + 1
   return `${prefix}-${catPrefix}${String(seq).padStart(4, '0')}`
 }
 
 // ══════════════════════════════════════════════════════════════
-// SECTEURS DE COMMERCE EN CÔTE D'IVOIRE
+// CONFIG DÉPLACÉE VERS src/features/products/config/
+// (sectorCatalog.js, categories.js, fieldSchema.js)
+// Réexportés ici pour compatibilité avec les anciens importeurs.
 // ══════════════════════════════════════════════════════════════
-export const SECTEURS_COMMERCE = [
-  { id: 'detail', nom: 'Commerce de détail', icon: '🛒', desc: 'Supermarchés, boutiques, kiosques', color: 'brand' },
-  { id: 'alimentaire', nom: 'Commerce alimentaire', icon: '🍽️', desc: 'Restaurants, bars, boulangeries', color: 'amber' },
-  { id: 'industriel', nom: 'Commerce industriel', icon: '🏭', desc: 'Matériaux, pièces, machines', color: 'slate' },
-  { id: 'pharmaceutique', nom: 'Commerce pharmaceutique', icon: '💊', desc: 'Pharmacies, parapharmacies', color: 'rose' },
-  { id: 'mode', nom: 'Commerce de mode', icon: '👗', desc: 'Vêtements, chaussures, accessoires', color: 'violet' },
-  { id: 'high_tech', nom: 'Commerce High-Tech', icon: '📱', desc: 'Téléphones, ordinateurs, électronique', color: 'sky' },
-  { id: 'logistique', nom: 'Commerce logistique', icon: '📦', desc: 'Transport, livraison, grossistes', color: 'teal' },
-  { id: 'educatif', nom: 'Commerce éducatif', icon: '📚', desc: 'Librairies, fournitures scolaires', color: 'emerald' },
-]
-
-export const UNITES = {
-  detail: ['pièce', 'casier', 'carton', 'lot'],
-  alimentaire: ['kg', 'g', 'L', 'mL', 'pièce', 'portion'],
-  industriel: ['pièce', 'mètre', 'kg', 'barre', 'boîte', 'palette'],
-  pharmaceutique: ['boîte', 'tube', 'flacon', 'pièce', 'plaquette'],
-  mode: ['pièce'],
-  high_tech: ['pièce'],
-  logistique: ['colis', 'palette', 'carton', 'kg', 'm³'],
-  educatif: ['pièce', 'lot', 'palette'],
-}
-
-export const CATEGORIES_SECTOR = {
-  detail: ['Alimentaire', 'Boisson', 'Hygiène', 'Entretien', 'Électronique', 'Vêtement', 'Autre'],
-  alimentaire: ['Ingrédient', 'Épice', 'Boisson', 'Matière première', 'Consommable', 'Emballage'],
-  industriel: ['Pièce mécanique', 'Électrique', 'Hydraulique', 'Consommable', 'Outillage', 'Matière première'],
-  pharmaceutique: ['Médicament', 'Parapharmacie', 'Matériel médical', 'Consommable médical'],
-  mode: ['Vêtement', 'Chaussure', 'Accessoire', 'Bijoux', 'Sacs'],
-  high_tech: ['Téléphone', 'Ordinateur', 'Tablette', 'Accessoire', 'Câble', 'Composant'],
-  logistique: ['Alimentaire', 'Industriel', 'Fragile', 'Sensible', 'Gros volume'],
-  educatif: ['Livre', 'Cahier', 'Stylos', 'Cartable', 'Matériel artistique', 'Papeterie'],
-}
-
-// ══════════════════════════════════════════════════════════════
-// CHAMPS SPÉCIFIQUES PAR CATÉGORIE (secteur detail)
-// ══════════════════════════════════════════════════════════════
-export const CATEGORY_FIELDS = {
-  Alimentaire: [
-    { key: 'datePeremption', label: 'Date de péremption', type: 'date', default: '' },
-    { key: 'dureeConservation', label: 'Durée conservation (jours)', type: 'number', default: 0 },
-    { key: 'temperatureStockage', label: 'Temp. stockage', type: 'text', default: '', placeholder: 'ex: 2-8°C' },
-    { key: 'fournisseur', label: 'Fournisseur', type: 'text', default: '' },
-    { key: 'estIngredientCle', label: 'Ingrédient clé', type: 'checkbox', default: false },
-  ],
-  Boisson: [
-    { key: 'typeBoisson', label: 'Type', type: 'select', options: ['Bière', 'Vin', 'Soda', 'Jus', 'Eau', 'Alcool', 'Autre'], default: '' },
-    { key: 'formatContenant', label: 'Format', type: 'select', options: ['Bouteille', 'Casier', 'Pack', 'Canette', 'Bidon', 'Fût', 'Autre'], default: '' },
-    { key: 'nbUnitesParFormat', label: 'Unités par format', type: 'number', default: 1 },
-    { key: 'estConsigne', label: 'Consigné', type: 'checkbox', default: false },
-    { key: 'fournisseur', label: 'Fournisseur', type: 'text', default: '' },
-  ],
-  Hygiène: [
-    { key: 'fournisseur', label: 'Fournisseur principal', type: 'text', default: '' },
-    { key: 'estProduitEssentiel', label: 'Produit essentiel', type: 'checkbox', default: false },
-    { key: 'categorieUsage', label: 'Usage', type: 'select', options: ['Corps', 'Visage', 'Cheveux', 'Dentaire', 'Ménager', 'Autre'], default: '' },
-  ],
-  Entretien: [
-    { key: 'categorieMénager', label: 'Catégorie', type: 'select', options: ['Sol', 'Linge', 'Vaisselle', 'Salle de bain', 'Cuisine', 'Multi-usage', 'Autre'], default: '' },
-    { key: 'fournisseur', label: 'Fournisseur', type: 'text', default: '' },
-    { key: 'estProduitMénagerBase', label: 'Produit de base', type: 'checkbox', default: false },
-  ],
-  Électronique: [
-    { key: 'marque', label: 'Marque', type: 'text', default: '' },
-    { key: 'modele', label: 'Modèle', type: 'text', default: '' },
-    { key: 'numeroSerie', label: 'N° de série', type: 'text', default: '' },
-    { key: 'imei', label: 'IMEI', type: 'text', default: '' },
-    { key: 'garantieMois', label: 'Garantie (mois)', type: 'number', default: 12 },
-    { key: 'dateAchat', label: "Date d'achat", type: 'date', default: '' },
-    { key: 'fournisseur', label: 'Fournisseur', type: 'text', default: '' },
-  ],
-  Vêtement: [
-    { key: 'taille', label: 'Taille', type: 'text', default: '', placeholder: 'ex: S, M, L, XL' },
-    { key: 'couleur', label: 'Couleur', type: 'text', default: '' },
-    { key: 'collection', label: 'Collection', type: 'text', default: '' },
-    { key: 'genre', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Unisexe', 'Enfant'], default: 'Unisexe' },
-    { key: 'estBestSeller', label: 'Best-seller', type: 'checkbox', default: false },
-    { key: 'fournisseur', label: 'Fournisseur', type: 'text', default: '' },
-  ],
-}
-
-// Champs spécifiques par secteur (pour le formulaire)
-export const SECTOR_FIELDS = {
-  detail: [
-    { key: 'nbUnitesParCasier', label: 'Unités par casier', type: 'number', default: 24 },
-    { key: 'prixCasier', label: 'Prix par casier (FCFA)', type: 'number', default: 0 },
-    { key: 'fournisseur', label: 'Fournisseur habituel', type: 'text', default: '' },
-  ],
-  alimentaire: [
-    { key: 'poidsUnite', label: "Poids/Volume unitaire", type: 'text', default: '', placeholder: 'ex: 250g, 1L' },
-    { key: 'allergenes', label: 'Allergènes', type: 'text', default: '' },
-    { key: 'temperatureStockage', label: 'Temp. stockage', type: 'text', default: '', placeholder: 'ex: 2-8°C' },
-    { key: 'dureeConservation', label: 'Durée conservation (jours)', type: 'number', default: 0 },
-    { key: 'recetteLiee', label: 'Recette associée', type: 'text', default: '' },
-    { key: 'fournisseur', label: 'Fournisseur', type: 'text', default: '' },
-  ],
-  industriel: [
-    { key: 'matiere', label: 'Matière', type: 'text', default: '' },
-    { key: 'dimensions', label: 'Dimensions', type: 'text', default: '', placeholder: 'ex: 120x80x50 mm' },
-    { key: 'poidsNet', label: 'Poids net (kg)', type: 'number', default: 0 },
-    { key: 'fournisseur', label: 'Fournisseur', type: 'text', default: '' },
-    { key: 'certification', label: 'Certification', type: 'text', default: '' },
-    { key: 'delaiAppro', label: 'Délai appro. (jours)', type: 'number', default: 0 },
-  ],
-  pharmaceutique: [
-    { key: 'dcI', label: 'DCI (Dénomination Commune)', type: 'text', default: '' },
-    { key: 'dosage', label: 'Dosage', type: 'text', default: '', placeholder: 'ex: 500mg' },
-    { key: 'formePharmaceutique', label: 'Forme', type: 'select', options: ['Comprimé', 'Gélule', 'Sirop', 'Injection', 'Crème', 'Pommade', 'Spray', 'Autre'], default: '' },
-    { key: 'classeTherapeutique', label: 'Classe thérapeutique', type: 'text', default: '' },
-    { key: 'controlable', label: 'Médicament contrôlé', type: 'checkbox', default: false },
-    { key: 'prescriptionRequise', label: 'Prescription requise', type: 'checkbox', default: false },
-    { key: 'laboratoire', label: 'Laboratoire', type: 'text', default: '' },
-    { key: 'numAMM', label: 'N° AMM', type: 'text', default: '' },
-  ],
-  mode: [
-    { key: 'saison', label: 'Saison', type: 'select', options: ['Printemps', 'Été', 'Automne', 'Hiver', 'Toute saison', 'Cruise', 'Resort'], default: 'Toute saison' },
-    { key: 'collection', label: 'Collection', type: 'text', default: '' },
-    { key: 'marque', label: 'Marque', type: 'text', default: '' },
-    { key: 'materiau', label: 'Matière', type: 'text', default: '' },
-    { key: 'genre', label: 'Genre', type: 'select', options: ['Homme', 'Femme', 'Unisexe', 'Enfant'], default: 'Unisexe' },
-    { key: 'tailles', label: 'Tailles disponibles', type: 'text', default: '', placeholder: 'ex: S,M,L,XL' },
-    { key: 'couleurs', label: 'Couleurs disponibles', type: 'text', default: '', placeholder: 'ex: Noir,Blanc,Rouge' },
-    { key: 'fournisseur', label: 'Fournisseur', type: 'text', default: '' },
-  ],
-  high_tech: [
-    { key: 'marque', label: 'Marque', type: 'text', default: '' },
-    { key: 'modele', label: 'Modèle', type: 'text', default: '' },
-    { key: 'numeroSerie', label: 'N° de série', type: 'text', default: '' },
-    { key: 'imei', label: 'IMEI', type: 'text', default: '' },
-    { key: 'garantieMois', label: 'Garantie (mois)', type: 'number', default: 12 },
-    { key: 'dateAchat', label: "Date d'achat", type: 'date', default: '' },
-    { key: 'etat', label: 'État', type: 'select', options: ['Neuf', 'Comme neuf', 'Bon état', 'Usé', 'Reconditionné'], default: 'Neuf' },
-    { key: 'connectivite', label: 'Connectivité', type: 'text', default: '', placeholder: 'WiFi, 4G, 5G...' },
-    { key: 'fournisseur', label: 'Fournisseur', type: 'text', default: '' },
-  ],
-  logistique: [
-    { key: 'poidsColis', label: 'Poids (kg)', type: 'number', default: 0 },
-    { key: 'dimensionsColis', label: 'Dimensions (LxlxH)', type: 'text', default: '' },
-    { key: 'typeColis', label: 'Type de colis', type: 'select', options: ['Standard', 'Fragile', 'Sensible', 'Périssable', 'Surchargé'], default: 'Standard' },
-    { key: 'zoneLivraison', label: 'Zone de livraison', type: 'text', default: '' },
-    { key: 'transporteur', label: 'Transporteur', type: 'text', default: '' },
-    { key: 'delaiLivraison', label: 'Délai livraison (h)', type: 'number', default: 24 },
-  ],
-  educatif: [
-    { key: 'niveauScolaire', label: 'Niveau scolaire', type: 'select', options: ['Maternelle', 'Primaire', 'Collège', 'Lycée', 'Université', 'Formation'], default: '' },
-    { key: 'matiere', label: 'Matière', type: 'text', default: '' },
-    { key: 'auteur', label: 'Auteur', type: 'text', default: '' },
-    { key: 'editeur', label: 'Éditeur', type: 'text', default: '' },
-    { key: 'isbn', label: 'ISBN', type: 'text', default: '' },
-    { key: 'anneeScolaire', label: 'Année scolaire', type: 'text', default: '', placeholder: 'ex: 2025-2026' },
-    { key: 'fournisseur', label: 'Fournisseur', type: 'text', default: '' },
-  ],
-}
+export { SECTEURS_COMMERCE, getSecteurById, SECTEUR_PREFIX_REFERENCE } from '../features/products/config/sectorCatalog'
+export { UNITES, CATEGORIES_SECTOR, CATEGORY_ICONS, getCategories, getUnites } from '../features/products/config/categories'
+export { SECTOR_FIELDS, CATEGORY_FIELDS, getSectorFields, getCategoryFields } from '../features/products/config/fieldSchema'
 
 // ══════════════════════════════════════════════════════════════
 // PRODUITS V2 — SCHÉMA UNIVERSEL AVEC CHAMPS SECTORIELS

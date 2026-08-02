@@ -14,6 +14,7 @@ android/app/build/
 android/build/
 android/capacitor-cordova-android-plugins/build/
 android/keystore.properties
+android/local.properties
 android/**/*.jks
 android/**/*.keystore
 captcha/

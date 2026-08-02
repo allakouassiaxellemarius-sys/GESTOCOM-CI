@@ -4,7 +4,7 @@ import { useAuth } from '../context/AuthContext'
 import { useTheme } from '../context/ThemeContext'
 import { useSector } from '../context/SectorContext'
 import { useDevice } from '../context/DeviceContext'
-import { SECTEURS_COMMERCE } from '../lib/stockDb'
+import { SECTEURS_COMMERCE } from '../features/products/config/sectorCatalog'
 import { SECTORS } from '../lib/modules'
 import {
   LayoutDashboard, Package, ShoppingCart,

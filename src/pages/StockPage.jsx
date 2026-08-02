@@ -1,28 +1,27 @@
-import { useState, useRef, useMemo, useEffect } from 'react'
+import { useState, useMemo } from 'react'
 import {
   getProductsV2, addProductV2, updateProductV2, deleteProductV2,
-  searchProductsV2, duplicateProductV2,
-  entreeStock, sortieStock, ajusterStock, transfertStock,
+  duplicateProductV2,
   getAlertesStock, getStatsStock, getMouvements,
   getRapportBestSellers, getRapportInvendus, getRapportMarges, getRapportSaisonnier, getRapportConsommationPharma,
-  SECTEURS_COMMERCE, UNITES, CATEGORIES_SECTOR, SECTOR_FIELDS, CATEGORY_FIELDS,
   getEntrepots, addEntrepot, deleteEntrepot,
   getLots, addLot, getLotsPerimes, getLotsProchesPeremption,
   getRetoursConsignes, addRetourConsigne, updateRetourConsigne, getStatsRetoursConsignes,
   migrateFromV1,
 } from '../lib/stockDb'
-import { addLog } from '../lib/db'
+import { SECTEURS_COMMERCE } from '../features/products/config/sectorCatalog'
+import { emptyProductForm } from '../features/products/domain/productBuilder'
+import { ProductFormModal, StockMovementModal } from '../features/products'
 import { useSector } from '../context/SectorContext'
 import { useDevice } from '../context/DeviceContext'
 import {
-  Plus, Edit2, Trash2, RefreshCw, X, Printer, Upload, Download,
+  Plus, Edit2, Trash2, RefreshCw, X, Printer, Download,
   Package, AlertTriangle, ArrowDownCircle, ArrowUpCircle,
   MinusCircle, ArrowRightCircle, Warehouse, BarChart3, TrendingUp, TrendingDown,
   RotateCcw, Calendar, ClipboardList, Check,
-  Ruler, Shield, Clock, AlertCircle, ScanBarcode, Sparkles,
+  Shield, Clock, AlertCircle, Star,
 } from 'lucide-react'
-import { BarcodeValue, BarcodeLabel, BarcodeSheet } from '../components/BarcodeLabel'
-import BarcodeScanner from '../components/BarcodeScanner'
+import { BarcodeLabel, BarcodeSheet } from '../components/BarcodeLabel'
 import SearchInput from '../components/SearchInput'
 import SortableHeader, { useSort } from '../components/SortableHeader'
 import { exportCSV } from '../lib/exportCSV'
@@ -62,440 +61,6 @@ function StatCard({ icon: Icon, label, value, color = 'brand', sub, onClick }) {
   )
 }
 
-function ImageUpload({ value, onChange }) {
-  const inputRef = useRef(null)
-  const handleFile = (e) => {
-    const file = e.target.files?.[0]
-    if (!file) return
-    if (file.size > 2 * 1024 * 1024) { alert('Image trop lourde (max 2 Mo)'); return }
-    const reader = new FileReader()
-    reader.onload = () => onChange(reader.result)
-    reader.readAsDataURL(file)
-  }
-  return (
-    <div>
-      {value ? (
-        <div className="relative w-full h-28 rounded-lg overflow-hidden border border-gray-200 dark:border-dark-600">
-          <img src={value} alt="Produit" className="w-full h-full object-cover" />
-          <button onClick={() => onChange('')} className="absolute top-1 right-1 p-1 bg-red-500 text-white rounded-full hover:bg-red-600"><X className="w-3 h-3" /></button>
-        </div>
-      ) : (
-        <button onClick={() => inputRef.current?.click()} type="button" className="w-full h-28 border-2 border-dashed border-gray-300 dark:border-dark-600 rounded-lg flex flex-col items-center justify-center gap-1 text-gray-400 hover:border-brand-400 hover:text-brand-500 transition-colors">
-          <Upload className="w-5 h-5" /><span className="text-xs">Image</span>
-        </button>
-      )}
-      <input ref={inputRef} type="file" accept="image/*" onChange={handleFile} className="hidden" />
-    </div>
-  )
-}
-
-function SectorSpecificFields({ form, setForm, secteur }) {
-  const fields = SECTOR_FIELDS[secteur] || []
-  if (fields.length === 0) return null
-  return (
-    <div className="col-span-2 mt-2 pt-3 border-t border-gray-100 dark:border-dark-600">
-      <p className="text-xs font-semibold text-gray-500 dark:text-gray-400 mb-2 uppercase tracking-wider">
-        Champs spécifiques — {SECTEURS_COMMERCE.find(s => s.id === secteur)?.icon} {SECTEURS_COMMERCE.find(s => s.id === secteur)?.nom}
-      </p>
-      <div className="grid grid-cols-2 gap-3">
-        {fields.map(f => {
-          const val = form.specifications?.[f.key] ?? f.default
-          if (f.type === 'checkbox') {
-            return (
-              <label key={f.key} className="col-span-2 flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={!!val} onChange={e => setForm({ ...form, specifications: { ...form.specifications, [f.key]: e.target.checked } })}
-                  className="rounded border-gray-300 dark:border-dark-600 text-brand-500" />
-                <span className="text-sm dark:text-gray-300">{f.label}</span>
-              </label>
-            )
-          }
-          if (f.type === 'select') {
-            return (
-              <div key={f.key}>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{f.label}</label>
-                <select value={val} onChange={e => setForm({ ...form, specifications: { ...form.specifications, [f.key]: e.target.value } })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
-                  <option value="">--</option>
-                  {(f.options || []).map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </div>
-            )
-          }
-          return (
-            <div key={f.key}>
-              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{f.label}</label>
-              <input type={f.type} value={val} placeholder={f.placeholder || ''}
-                onChange={e => setForm({ ...form, specifications: { ...form.specifications, [f.key]: f.type === 'number' ? +e.target.value : e.target.value } })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" />
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-const CATEGORY_ICONS = {
-  Alimentaire: '🍽️', Boisson: '🍷', Hygiène: '🧼', Entretien: '🧹', Électronique: '📱', Vêtement: '👕', Autre: '📦',
-}
-
-function CategorySpecificFields({ form, setForm, categorie }) {
-  if (!categorie || categorie === 'Autre') return null
-  const fields = CATEGORY_FIELDS[categorie] || []
-  if (fields.length === 0) return null
-  return (
-    <div className="col-span-2 mt-2 pt-3 border-t border-gray-200 dark:border-dark-500">
-      <p className="text-xs font-semibold text-gray-600 dark:text-gray-300 mb-2 uppercase tracking-wider">
-        {CATEGORY_ICONS[categorie] || '📦'} Champs spécifiques — {categorie}
-      </p>
-      <div className="grid grid-cols-2 gap-3">
-        {fields.map(f => {
-          const val = form.specifications?.[f.key] ?? f.default
-          if (f.type === 'checkbox') {
-            return (
-              <label key={f.key} className="col-span-2 flex items-center gap-2 cursor-pointer">
-                <input type="checkbox" checked={!!val} onChange={e => setForm({ ...form, specifications: { ...form.specifications, [f.key]: e.target.checked } })}
-                  className="rounded border-gray-300 dark:border-dark-600 text-brand-500" />
-                <span className="text-sm dark:text-gray-300">{f.label}</span>
-              </label>
-            )
-          }
-          if (f.type === 'select') {
-            return (
-              <div key={f.key}>
-                <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{f.label}</label>
-                <select value={val} onChange={e => setForm({ ...form, specifications: { ...form.specifications, [f.key]: e.target.value } })}
-                  className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
-                  <option value="">--</option>
-                  {(f.options || []).map(o => <option key={o} value={o}>{o}</option>)}
-                </select>
-              </div>
-            )
-          }
-          return (
-            <div key={f.key}>
-              <label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">{f.label}</label>
-              <input type={f.type} value={val} placeholder={f.placeholder || ''}
-                onChange={e => setForm({ ...form, specifications: { ...form.specifications, [f.key]: f.type === 'number' ? +e.target.value : e.target.value } })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" />
-            </div>
-          )
-        })}
-      </div>
-    </div>
-  )
-}
-
-function ProductForm({ form, setForm, onSave, onCancel }) {
-  const secteur = form.secteur || 'detail'
-  const categories = CATEGORIES_SECTOR[secteur] || []
-  const unites = UNITES[secteur] || ['pièce']
-  const [showScanner, setShowScanner] = useState(false)
-  const [nameSuggestions, setNameSuggestions] = useState([])
-  const [showSuggestions, setShowSuggestions] = useState(false)
-  const nameRef = useRef(null)
-  const suggestionsRef = useRef(null)
-
-  // Auto name suggestions
-  useEffect(() => {
-    if (form.nom && form.nom.length >= 2 && !form.id) {
-      const results = searchProductsV2(form.nom)
-      setNameSuggestions(results.filter(p => p.nom.toLowerCase() !== form.nom.toLowerCase()))
-      setShowSuggestions(results.length > 0)
-    } else {
-      setNameSuggestions([])
-      setShowSuggestions(false)
-    }
-  }, [form.nom, form.id])
-
-  // Close suggestions on outside click
-  useEffect(() => {
-    const handler = (e) => {
-      if (suggestionsRef.current && !suggestionsRef.current.contains(e.target) && nameRef.current && !nameRef.current.contains(e.target)) {
-        setShowSuggestions(false)
-      }
-    }
-    document.addEventListener('mousedown', handler)
-    return () => document.removeEventListener('mousedown', handler)
-  }, [])
-
-  // Auto margin calculation
-  const marginInfo = useMemo(() => {
-    if (!form.prixAchat || !form.prixVente) return null
-    const marge = form.prixAchat > 0 ? ((form.prixVente - form.prixAchat) / form.prixAchat * 100) : 0
-    const benefice = form.prixVente - form.prixAchat
-    return { marge: marge.toFixed(1), benefice, isValid: marge >= (form.margeMinimum || 0) }
-  }, [form.prixAchat, form.prixVente, form.margeMinimum])
-
-  // Auto-suggest selling price from cost + default margin
-  const handleCostPriceChange = (val) => {
-    const cost = +val
-    setForm(prev => {
-      const updated = { ...prev, prixAchat: cost }
-      if (cost > 0 && (!prev.prixVente || prev.prixVente === 0)) {
-        updated.prixVente = Math.round(cost * 1.3)
-      }
-      return updated
-    })
-  }
-
-  // Handle barcode scan in form
-  const handleFormScan = (code) => {
-    setForm(prev => ({ ...prev, barcode: code }))
-    setShowScanner(false)
-  }
-
-  // Quick duplicate from existing product
-  const handleQuickFill = (product) => {
-    setForm(prev => ({
-      ...prev,
-      nom: product.nom,
-      secteur: product.secteur || 'detail',
-      categorie: product.categorie || '',
-      unite: product.unite || 'pièce',
-      prixAchat: product.prixAchat || 0,
-      prixVente: product.prixVente || 0,
-      margeMinimum: product.margeMinimum || 10,
-      emplacement: product.emplacement || '',
-      entrepot: product.entrepot || 'Principal',
-      description: product.description || '',
-    }))
-    setShowSuggestions(false)
-  }
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-dark-800 rounded-2xl p-6 w-full max-w-2xl shadow-2xl max-h-[90vh] overflow-y-auto">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-semibold dark:text-white">{form.id ? 'Modifier' : 'Ajouter'} un produit</h3>
-          <button onClick={onCancel} className="p-2 rounded-xl hover:bg-gray-100 dark:hover:bg-dark-600 touch-target"><X className="w-5 h-5 dark:text-gray-400" /></button>
-        </div>
-
-        {/* Auto-generated barcode preview */}
-        {form.id && form.barcode && (
-          <div className="mb-4 p-3 bg-gray-50 dark:bg-dark-700 rounded-xl flex items-center gap-4">
-            <BarcodeValue value={form.barcode} width={1} height={35} fontSize={10} />
-            <div className="text-xs text-gray-500 dark:text-gray-400"><div className="font-medium text-gray-700 dark:text-gray-300">Code-barres auto-généré</div><div>{form.barcode}</div></div>
-          </div>
-        )}
-
-        <div className="grid grid-cols-2 gap-4">
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Image</label><ImageUpload value={form.image} onChange={(img) => setForm({ ...form, image: img })} /></div>
-
-          {/* PRODUCT NAME with suggestions */}
-          <div className="col-span-2 relative">
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Nom * {form.id && <span className="text-gray-400">(automatique)</span>}</label>
-            <div className="relative">
-              <input ref={nameRef} value={form.nom} onChange={e => setForm({ ...form, nom: e.target.value })}
-                className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" />
-              {!form.id && form.nom && <Sparkles className="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 text-amber-400" />}
-            </div>
-            {showSuggestions && nameSuggestions.length > 0 && (
-              <div ref={suggestionsRef} className="absolute z-10 top-full left-0 right-0 mt-1 bg-white dark:bg-dark-800 border border-gray-200 dark:border-dark-600 rounded-xl shadow-xl max-h-48 overflow-y-auto">
-                <div className="px-3 py-1.5 text-[10px] text-gray-400 uppercase tracking-wider border-b border-gray-100 dark:border-dark-700">Produits similaires — cliquer pour pré-remplir</div>
-                {nameSuggestions.map(p => (
-                  <button key={p.id} onClick={() => handleQuickFill(p)}
-                    className="w-full text-left px-3 py-2 hover:bg-gray-50 dark:hover:bg-dark-700 flex items-center gap-2 text-sm transition-colors">
-                    <Package className="w-4 h-4 text-gray-400 flex-shrink-0" />
-                    <div className="min-w-0">
-                      <div className="font-medium dark:text-white truncate">{p.nom}</div>
-                      <div className="text-[11px] text-gray-400">{p.categorie} · {p.prixVente?.toLocaleString('fr-FR')} FCFA</div>
-                    </div>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          {/* REFERENCE — auto-generated preview */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Référence {!form.id && <span className="text-green-500">(auto)</span>}
-            </label>
-            <input value={form.reference} onChange={e => setForm({ ...form, reference: e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white"
-              placeholder={form.id ? '' : 'Générée automatiquement'} />
-            {!form.id && !form.reference && (
-              <p className="text-[10px] text-green-500 mt-0.5">Sera générée: {(() => {
-                const prefixes = { detail: 'DET', alimentaire: 'ALI', industriel: 'IND', pharmaceutique: 'PHAR', mode: 'MOD', high_tech: 'TECH', logistique: 'LOG', educatif: 'EDU' }
-                return `${prefixes[secteur] || 'PRD'}-XXXX`
-              })()}</p>
-            )}
-          </div>
-
-          {/* BARCODE with scanner */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">
-              Code-barres {!form.id && <span className="text-green-500">(auto)</span>}
-            </label>
-            <div className="flex gap-1.5">
-              <input value={form.barcode} onChange={e => setForm({ ...form, barcode: e.target.value })}
-                className="flex-1 px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white font-mono"
-                placeholder={form.id ? '' : 'GCI000001'} />
-              <button onClick={() => setShowScanner(true)}
-                className="px-3 py-2 bg-brand-50 text-brand-600 rounded-lg hover:bg-brand-100 transition-colors touch-target"
-                title="Scanner un code-barres">
-                <ScanBarcode className="w-4 h-4" />
-              </button>
-            </div>
-            {!form.id && !form.barcode && (
-              <p className="text-[10px] text-green-500 mt-0.5">Sera généré automatiquement à la sauvegarde</p>
-            )}
-          </div>
-
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Secteur *</label>
-            <select value={form.secteur} onChange={e => setForm({ ...form, secteur: e.target.value, categorie: '', unite: UNITES[e.target.value]?.[0] || 'pièce' })} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
-              {SECTEURS_COMMERCE.map(s => <option key={s.id} value={s.id}>{s.icon} {s.nom}</option>)}
-            </select></div>
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Catégorie</label>
-            <select value={form.categorie} onChange={e => setForm({ ...form, categorie: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
-              <option value="">-- Choisir --</option>{categories.map(c => <option key={c} value={c}>{c}</option>)}
-            </select></div>
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Unité</label>
-            <select value={form.unite} onChange={e => setForm({ ...form, unite: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
-              {unites.map(u => <option key={u} value={u}>{u}</option>)}
-            </select></div>
-
-          {/* PRICE with auto margin */}
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Prix d'achat (FCFA)</label>
-            <input type="number" value={form.prixAchat} onChange={e => handleCostPriceChange(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Prix de vente (FCFA)</label>
-            <input type="number" value={form.prixVente} onChange={e => setForm({ ...form, prixVente: +e.target.value })}
-              className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" />
-            {marginInfo && (
-              <div className={`flex items-center gap-2 mt-1 text-[11px] ${marginInfo.isValid ? 'text-green-500' : 'text-amber-500'}`}>
-                <span>Marge: {marginInfo.marge}%</span>
-                <span>·</span>
-                <span>Bénéfice: {marginInfo.benefice.toLocaleString('fr-FR')} FCFA</span>
-                {!marginInfo.isValid && <span>· <b>Min: {form.margeMinimum}%</b></span>}
-              </div>
-            )}
-          </div>
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Marge min (%)</label><input type="number" value={form.margeMinimum} onChange={e => setForm({ ...form, margeMinimum: +e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Stock actuel</label><input type="number" value={form.stockActuel} onChange={e => setForm({ ...form, stockActuel: +e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Seuil alerte</label><input type="number" value={form.seuilAlerte} onChange={e => setForm({ ...form, seuilAlerte: +e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Stock min</label><input type="number" value={form.stockMinimal} onChange={e => setForm({ ...form, stockMinimal: +e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Stock max</label><input type="number" value={form.stockMaximal} onChange={e => setForm({ ...form, stockMaximal: +e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Entrepôt</label><input value={form.entrepot} onChange={e => setForm({ ...form, entrepot: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" placeholder="Principal" /></div>
-          <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Emplacement</label><input value={form.emplacement} onChange={e => setForm({ ...form, emplacement: e.target.value })} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" placeholder="Rayon A3" /></div>
-          <div className="col-span-2"><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Description</label><textarea value={form.description} onChange={e => setForm({ ...form, description: e.target.value })} rows={2} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>
-          <SectorSpecificFields form={form} setForm={setForm} secteur={secteur} />
-          {secteur === 'detail' && <CategorySpecificFields form={form} setForm={setForm} categorie={form.categorie} />}
-        </div>
-        <div className="flex justify-end gap-3 mt-6">
-          <button onClick={onCancel} className="btn-secondary text-sm py-2 px-4">Annuler</button>
-          <button onClick={onSave} className="btn-primary text-sm py-2 px-4" disabled={!form.nom}>
-            {form.id ? 'Modifier' : 'Créer le produit'}
-          </button>
-        </div>
-      </div>
-
-      {/* Barcode scanner modal */}
-      {showScanner && <BarcodeScanner onScan={handleFormScan} onClose={() => setShowScanner(false)} />}
-    </div>
-  )
-}
-
-function EntreeSortieModal({ type, produit, onConfirm, onCancel }) {
-  const isEntree = type === 'entree'
-  const [qty, setQty] = useState(1)
-  const [motif, setMotif] = useState(isEntree ? 'Réapprovisionnement' : 'Vente')
-  const [reference, setReference] = useState('')
-  const [fournisseur, setFournisseur] = useState('')
-  const [client, setClient] = useState('')
-  const [lot, setLot] = useState('')
-  const [datePeremption, setDatePeremption] = useState('')
-  const [prixUnitaire, setPrixUnitaire] = useState(isEntree ? (produit.prixAchat || 0) : (produit.prixVente || 0))
-  const [numeroSerie, setNumeroSerie] = useState('')
-  const [variantTaille, setVariantTaille] = useState('')
-  const [variantCouleur, setVariantCouleur] = useState('')
-
-  const handleConfirm = () => {
-    if (qty <= 0) return
-    const opts = { motif, reference, prixUnitaire, lot, datePeremption: datePeremption || null, numeroSerie, variantTaille, variantCouleur }
-    if (isEntree) {
-      opts.fournisseur = fournisseur
-      entreeStock(produit.id, qty, opts)
-    } else {
-      if (qty > produit.stockActuel) { alert('Stock insuffisant !'); return }
-      opts.client = client
-      sortieStock(produit.id, qty, opts)
-    }
-    onConfirm()
-  }
-
-  const tailles = (produit.specifications?.tailles || '').split(',').filter(Boolean)
-  const couleurs = (produit.specifications?.couleurs || '').split(',').filter(Boolean)
-  const isMode = produit.secteur === 'mode' && (tailles.length > 0 || couleurs.length > 0)
-  const isHighTech = produit.secteur === 'high_tech'
-  const isPharma = produit.secteur === 'pharmaceutique'
-
-  return (
-    <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
-      <div className="bg-white dark:bg-dark-800 rounded-2xl p-6 w-full max-w-md shadow-2xl">
-        <div className="flex items-center gap-3 mb-4">
-          <div className={`p-2 rounded-lg ${isEntree ? 'bg-green-50 dark:bg-green-900/30' : 'bg-red-50 dark:bg-red-900/30'}`}>
-            {isEntree ? <ArrowDownCircle className="w-5 h-5 text-green-500" /> : <ArrowUpCircle className="w-5 h-5 text-red-500" />}
-          </div>
-          <div>
-            <h3 className="text-lg font-semibold dark:text-white">{isEntree ? 'Entrée' : 'Sortie'} de stock</h3>
-            <p className="text-sm text-gray-500 dark:text-gray-400">{produit.nom} — Stock: {produit.stockActuel} {produit.unite}</p>
-          </div>
-        </div>
-        <div className="space-y-3">
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Quantité *</label>
-            <input type="number" min={1} value={qty} onChange={e => setQty(+e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" />
-          </div>
-          <div>
-            <label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">Motif</label>
-            <select value={motif} onChange={e => setMotif(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
-              {isEntree ? (<><option>Réapprovisionnement</option><option>Retour client</option><option>Don</option><option>Production</option><option>Autre</option></>) :
-                (<><option>Vente</option><option>Consommation interne</option><option>Perte</option><option>Don</option><option>Autre</option></>)}
-            </select>
-          </div>
-          {isMode && (
-            <div className="grid grid-cols-2 gap-3">
-              {tailles.length > 0 && (
-                <div><label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Taille</label>
-                  <select value={variantTaille} onChange={e => setVariantTaille(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
-                    <option value="">--</option>{tailles.map(t => <option key={t} value={t}>{t}</option>)}
-                  </select></div>
-              )}
-              {couleurs.length > 0 && (
-                <div><label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Couleur</label>
-                  <select value={variantCouleur} onChange={e => setVariantCouleur(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white">
-                    <option value="">--</option>{couleurs.map(c => <option key={c} value={c}>{c}</option>)}
-                  </select></div>
-              )}
-            </div>
-          )}
-          {(isHighTech || isPharma) && (
-            <div><label className="block text-xs font-medium text-gray-600 dark:text-gray-400 mb-1">N° de série</label><input value={numeroSerie} onChange={e => setNumeroSerie(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" placeholder="SN-XXXX" /></div>
-          )}
-          <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Réf. commande</label><input value={reference} onChange={e => setReference(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>
-            <div><label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Prix unitaire</label><input type="number" value={prixUnitaire} onChange={e => setPrixUnitaire(+e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>
-          </div>
-          {isEntree && <div className="grid grid-cols-2 gap-3">
-            <div><label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Fournisseur</label><input value={fournisseur} onChange={e => setFournisseur(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>
-            <div><label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">N° Lot</label><input value={lot} onChange={e => setLot(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>
-          </div>}
-          {!isEntree && <div><label className="block text-xs text-gray-500 dark:text-gray-400 mb-1">Client</label><input value={client} onChange={e => setClient(e.target.value)} className="w-full px-3 py-2 border border-gray-300 dark:border-dark-600 rounded-lg text-sm bg-white dark:bg-dark-700 dark:text-white" /></div>}
-        </div>
-        <div className="flex justify-end gap-3 mt-4">
-          <button onClick={onCancel} className="btn-secondary text-sm py-2 px-4">Annuler</button>
-          <button onClick={handleConfirm} className={`text-sm py-2 px-4 ${isEntree ? 'btn-primary' : 'bg-red-500 text-white rounded-lg hover:bg-red-600'}`} disabled={qty <= 0}>Confirmer</button>
-        </div>
-      </div>
-    </div>
-  )
-}
-
 function StockTab({ products, refresh }) {
   const { activeSector, isFiltered, enabledSectors } = useSector()
   const { isMobile } = useDevice()
@@ -520,11 +85,9 @@ function StockTab({ products, refresh }) {
 
   const totalPages = Math.ceil(filteredProducts.length / perPage)
 
-  const emptyForm = { nom: '', reference: '', description: '', secteur: 'detail', categorie: '', barcode: '', unite: 'pièce', prixAchat: 0, prixVente: 0, margeMinimum: 10, stockActuel: 0, stockMinimal: 0, stockMaximal: 99999, seuilAlerte: 5, emplacement: '', entrepot: 'Principal', image: '', specifications: {}, variants: [], serialNumbers: [], recettes: [] }
-
-  const handleSave = () => {
-    if (form.id) updateProductV2(form)
-    else addProductV2(form)
+  const handleSave = (product) => {
+    if (product.id) updateProductV2(product)
+    else addProductV2(product)
     setForm(null); refresh()
   }
   const handleDelete = (id) => { if (confirm('Supprimer ce produit ?')) { deleteProductV2(id); refresh() } }
@@ -547,7 +110,7 @@ function StockTab({ products, refresh }) {
         </select>
         <span className="text-xs text-gray-400 dark:text-gray-500 hidden sm:inline">{filteredProducts.length} produit{filteredProducts.length !== 1 ? 's' : ''}</span>
         <div className="flex gap-1.5 sm:gap-2 ml-auto">
-          <button onClick={() => setForm({ ...emptyForm })} className="btn-primary text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-4 inline-flex items-center gap-1 sm:gap-2"><Plus className="w-4 h-4" /> <span className="hidden xs:inline">Ajouter</span></button>
+          <button onClick={() => setForm(emptyProductForm())} className="btn-primary text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-4 inline-flex items-center gap-1 sm:gap-2"><Plus className="w-4 h-4" /> <span className="hidden xs:inline">Ajouter</span></button>
           <button onClick={handleExport} className="btn-secondary text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-4 inline-flex items-center gap-1 sm:gap-2"><Download className="w-4 h-4" /> <span className="hidden sm:inline">Exporter</span></button>
           <button onClick={() => setShowLabels(true)} className="btn-secondary text-xs sm:text-sm py-1.5 sm:py-2 px-2 sm:px-4 inline-flex items-center gap-1 sm:gap-2"><Printer className="w-4 h-4" /> <span className="hidden sm:inline">Étiquettes</span></button>
         </div>
@@ -605,8 +168,8 @@ function StockTab({ products, refresh }) {
       </div>
       <Pagination currentPage={page} totalPages={totalPages} onPageChange={setPage} />
 
-      {form && <ProductForm form={form} setForm={setForm} onSave={handleSave} onCancel={() => setForm(null)} />}
-      {stockModal && <EntreeSortieModal type={stockModal.type} produit={stockModal.produit} onConfirm={() => { setStockModal(null); refresh() }} onCancel={() => setStockModal(null)} />}
+      {form && <ProductFormModal product={form} onSave={handleSave} onClose={() => setForm(null)} />}
+      {stockModal && <StockMovementModal type={stockModal.type} produit={stockModal.produit} onConfirm={() => { setStockModal(null); refresh() }} onCancel={() => setStockModal(null)} />}
       {labelProduct && (
         <div className="fixed inset-0 bg-black/40 flex items-center justify-center z-50 p-4">
           <div className="bg-white dark:bg-dark-800 rounded-2xl p-6 w-full max-w-sm shadow-2xl">

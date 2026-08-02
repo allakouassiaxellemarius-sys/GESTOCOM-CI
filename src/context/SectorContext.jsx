@@ -1,5 +1,6 @@
 import { createContext, useContext, useState, useMemo, useCallback } from 'react'
-import { getProductsV2, SECTEURS_COMMERCE } from '../lib/stockDb'
+import { getProductsV2 } from '../lib/stockDb'
+import { SECTEURS_COMMERCE } from '../features/products/config/sectorCatalog'
 import { SECTORS } from '../lib/modules'
 import { useAuth } from './AuthContext'
 

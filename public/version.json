@@ -1,5 +1,5 @@
 {
-  "version": "1.9.2",
-  "changelog": "Fix: OTP connexion non exigé si email déjà vérifié. Statut vérifié synchronisé au cloud.
+  "version": "1.9.3",
+  "changelog": "Nouveau logo officiel (GESTOCOM) sur l'APK + refactor de l'ajout des produits (module features/products, validation inline).
   "zipUrl": "https://gesto-build.vercel.app/app.asar"
 }
